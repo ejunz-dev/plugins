@@ -59,6 +59,14 @@ export async function apply(ctx: Context) {
     ctx.i18n.load('zh', {
         domain_plugins: '域插件',
     });
+
+    ctx.injectUI('Home_Domain', 'domain_plugins', (h) => ({
+        icon: 'book',
+        displayName: '域插件',
+        uid: h.domain._id.toString()
+        
+    }));
+    
   
 }
 
