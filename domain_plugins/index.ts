@@ -14,7 +14,7 @@ import {
     Handler, param, post, query, requireSudo, Types,domain,Context,DomainModel
 } from 'ejun';
 import { log2 } from 'ejun'
-
+import { loadedPlugins } from 'ejun';
 
 class ManageHandler extends Handler {
     async prepare({ domainId }) {
@@ -25,10 +25,10 @@ class ManageHandler extends Handler {
 class DomainPluginHandler extends ManageHandler {
     @requireSudo
     async get({ domainId }) {
-
         this.response.template = 'domain_plugins.html';
         this.response.body = {
             domain: this.domain,
+            plugins: loadedPlugins,
         };
         console.log('this.response.body', this.response.body);
     }
@@ -57,16 +57,14 @@ export async function apply(ctx: Context) {
     ctx.Route('domain_plugins', '/domain/plugins', DomainPluginHandler);
     
     ctx.i18n.load('zh', {
-        domain_plugins: '域插件',
+        domain_plugins: '管理插件',
     });
 
     ctx.injectUI('Home_Domain', 'domain_plugins', (h) => ({
         icon: 'book',
-        displayName: '域插件',
+        displayName: '插件',
         uid: h.domain._id.toString()
         
     }));
-    
-  
 }
 
