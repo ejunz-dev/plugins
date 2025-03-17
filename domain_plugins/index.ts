@@ -85,7 +85,7 @@ export async function apply(ctx: Context) {
     ctx.Route('manage_plugins', '/manage/plugins', SystemPluginHandler);
 
     ctx.i18n.load('zh', {
-        domain_plugins: '管理插件',
+        domain_plugins: '插件',
         manage_plugins: '系统插件',
     });
 
