@@ -1,0 +1,21 @@
+{% extends "domain_base.html" %}
+{% block domain_content %}
+<div class="medium-6 columns">
+    <div class="section">
+        <h2>已加载的插件</h2>
+        {% if plugins %}
+            <ul>
+                {% for plugin in plugins %}
+                    <li>
+                        <strong>名称:</strong> {{ plugin.name }}<br>
+                        <strong>路径:</strong> {{ plugin.path }}<br>
+                        <strong>类型:</strong> {{ plugin.type }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>没有加载的插件。</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
