@@ -49,8 +49,8 @@ class SystemPluginHandler extends ManageHandler {
     // }
 }
 
-class DomainPluginHandler extends ManageHandler {
-    @requireSudo
+class DomainPluginStoreHandler extends ManageHandler {
+   // @requireSudo
     async get({ domainId }) {
         const roles = await DomainModel.getRoles(domainId);
         this.response.template = 'domain_plugins.html';
@@ -60,7 +60,7 @@ class DomainPluginHandler extends ManageHandler {
         console.log('this.response.body', this.response.body);
     }
 
-    @requireSudo
+    // @requireSudo
     async post({ domainId }) {
         const roles = {};
         for (const role in this.request.body) {
@@ -83,7 +83,7 @@ export async function apply(ctx: Context) {
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins', { family: 'Access Control', icon: 'user' });
     global.Ejunz.ui.inject('NavDropdown', 'manage_plugins', { prefix: 'manage' }, PRIV.PRIV_EDIT_SYSTEM);
 
-    ctx.Route('domain_plugins', '/domain/plugins', DomainPluginHandler);
+    ctx.Route('domain_plugins', '/domain/plugins', DomainPluginStoreHandler);
     ctx.Route('manage_plugins', '/manage/plugins', SystemPluginHandler);
 
     ctx.i18n.load('zh', {
