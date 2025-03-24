@@ -14,7 +14,7 @@
     </div>
   {% endif %}
   <div class="section__body no-padding domain-users">
-    {%- for family, perms in PLUGINS_PERMS_BY_FAMILY -%}
+    {%- for family, perms in PERMS_BY_FAMILY -%}
       <div class="plugin-section">
         <div class="plugin-header">
           <h2>{{ _(family) }}</h2>

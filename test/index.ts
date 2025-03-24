@@ -7,7 +7,7 @@ import {
     AccessDeniedError,
 } from 'ejun';
 import type { DomainDoc } from 'ejun';
-import { PERM, PERMS_BY_FAMILY, PRIV, PLUGINS_PERMS_BY_FAMILY } from 'ejun';
+import { PERM, PERMS_BY_FAMILY, PRIV } from 'ejun';
 import * as discussion from 'ejun';
 import * as system from 'ejun';
 import {
@@ -39,6 +39,7 @@ class TestHandler extends Handler {
 }
 
 export async function apply(ctx: Context) {
+
     ctx.Route('test', '/test', TestHandler);
 
 }
