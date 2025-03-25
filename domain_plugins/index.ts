@@ -60,7 +60,6 @@ class SystemPluginHandler extends SystemHandler {
         for (const s of this.response.body.settings) {
             this.response.body.current[s.key] = SystemModel.get(s.key);
         }
-        console.log('this.response.body.settings', this.response.body.settings);
     }
 
     @requireSudo
@@ -91,18 +90,17 @@ class SystemPluginHandler extends SystemHandler {
     }
 }
 
-class DomainPluginStoreHandler extends ManageHandler {
+class DomainPluginPermissionsHandler extends ManageHandler {
    // @requireSudo
     async get({ domainId }) {
         const roles = await DomainModel.getRoles(domainId);
-        this.response.template = 'domain_plugins.html';
+        this.response.template = 'domain_plugins_permissions.html';
         this.response.body = {
             roles,
             PERMS_BY_FAMILY,
             domain: this.domain,
             log2,
         };
-        console.log('this.response.body', this.response.body);
     }
 
     // @requireSudo
@@ -123,17 +121,32 @@ class DomainPluginStoreHandler extends ManageHandler {
     }
 }
 
+class DomainPluginConfigHandler extends ManageHandler {
+    async get() {
+        this.response.template = 'domain_plugins_config.html';
+        this.response.body.current = {};
+        this.response.body.settings = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+        for (const s of this.response.body.settings) {
+            this.response.body.current[s.key] = SystemModel.get(s.key);
+        }
+    }
+}
 
 export async function apply(ctx: Context) {
-    global.Ejunz.ui.inject('DomainManage', 'domain_plugins', { family: 'Access Control', icon: 'user' });
+    global.Ejunz.ui.inject('DomainManage', 'domain_plugins_permissions', { family: 'plugins', icon: 'book' });
+    global.Ejunz.ui.inject('DomainManage', 'domain_plugins_config', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('NavDropdown', 'manage_plugins', { prefix: 'manage' }, PRIV.PRIV_EDIT_SYSTEM);
 
-    ctx.Route('domain_plugins', '/domain/plugins', DomainPluginStoreHandler);
     ctx.Route('manage_plugins', '/manage/plugins', SystemPluginHandler);
+    ctx.Route('domain_plugins_permissions', '/domain/plugins/permissions', DomainPluginPermissionsHandler);
+    ctx.Route('domain_plugins_config', '/domain/plugins/config', DomainPluginConfigHandler);
 
     ctx.i18n.load('zh', {
+        'plugins': '本域插件',
         domain_plugins: '管理插件',
         manage_plugins: '系统插件',
+        domain_plugins_permissions: '插件权限',
+        domain_plugins_config: '插件配置',
     });
 
     ctx.injectUI('Home_Domain', 'domain_plugins', (h) => ({
