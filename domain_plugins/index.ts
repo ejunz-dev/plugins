@@ -132,7 +132,45 @@ class DomainPluginConfigHandler extends ManageHandler {
     }
 }
 
+class DomainPluginStoreHandler extends ManageHandler {
+    async get({ domainId }) {
+        const allowedDomainsSetting = SettingModel.SYSTEM_SETTINGS.filter(s => s.key.endsWith('.allowed_domains'));
+
+        const domainPluginsStore = allowedDomainsSetting.reduce((acc, setting) => {
+            const allowedDomains = yaml.load(setting.value) as string[];
+            if (allowedDomains.includes(domainId)) {
+                acc.push(setting.name);
+            }
+            return acc;
+        }, []);
+
+        this.response.template = 'domain_plugins_store.html';
+        this.response.body.current = this.domain;
+        this.response.body.settings = SettingModel.DOMAIN_PLUGIN_SETTINGS;
+        // for (const s of this.response.body.settings) {
+        //     this.response.body.current[s.key] = DomainModel.get(s.key);
+        // }
+        this.response.body.domainPluginsStore = domainPluginsStore;
+        console.log(this.response.body.current);
+        console.log(this.response.body.settings);
+
+
+    }
+    async post(args) {
+        console.log(args);
+        if (args.operation) return;
+        const $set = {};
+        for (const key in args) {
+            if (SettingModel.DOMAIN_PLUGIN_SETTINGS_BY_KEY[key]) $set[key] = args[key];
+        }
+        await DomainModel.edit(args.domainId, $set);
+        this.response.redirect = this.url('domain_plugins_store');
+    }
+}
+
+
 export async function apply(ctx: Context) {
+    global.Ejunz.ui.inject('DomainManage', 'domain_plugins_store', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_permissions', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_config', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('NavDropdown', 'manage_plugins', { prefix: 'manage' }, PRIV.PRIV_EDIT_SYSTEM);
@@ -140,6 +178,7 @@ export async function apply(ctx: Context) {
     ctx.Route('manage_plugins', '/manage/plugins', SystemPluginHandler);
     ctx.Route('domain_plugins_permissions', '/domain/plugins/permissions', DomainPluginPermissionsHandler);
     ctx.Route('domain_plugins_config', '/domain/plugins/config', DomainPluginConfigHandler);
+    ctx.Route('domain_plugins_store', '/domain/plugins/store', DomainPluginStoreHandler);
 
     ctx.i18n.load('zh', {
         'plugins': '本域插件',
@@ -147,6 +186,7 @@ export async function apply(ctx: Context) {
         manage_plugins: '系统插件',
         domain_plugins_permissions: '插件权限',
         domain_plugins_config: '插件配置',
+        domain_plugins_store: '插件商店',
     });
 
     ctx.injectUI('Home_Domain', 'domain_plugins', (h) => ({
