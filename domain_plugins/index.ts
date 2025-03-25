@@ -123,23 +123,26 @@ class DomainPluginPermissionsHandler extends ManageHandler {
 
 class DomainPluginConfigHandler extends ManageHandler {
     async get({ domainId }) {
-        const pluginSetting = SettingModel.DOMAIN_PLUGIN_SETTINGS.find(s => s.family === 'plugins');
+        console.log('SettingModel.DOMAIN_PLUGIN_SETTINGS',SettingModel.DOMAIN_PLUGIN_SETTINGS);
+        const pluginSetting = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => s.family === 'plugins');
 
         if (!pluginSetting) {
             console.error('Plugin setting not found');
             this.response.body.settings = [];
             return;
         }
+        console.log('pluginSetting',pluginSetting);
 
-        const pluginNames = yaml.load(pluginSetting.key) as string[];
+        const pluginNames = pluginSetting.map(setting => setting.key);
         console.log('pluginNames',pluginNames);
 
         const relevantSettings = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => pluginNames.includes(s.key));
+        console.log('relevantSettings',relevantSettings);
 
         this.response.template = 'domain_plugins_config.html';
         this.response.body.current = this.domain;
         this.response.body.settings = relevantSettings;
-
+        console.log('this.response.body.settings',this.response.body.settings);
     }
     async post(args) {
         console.log(args);
