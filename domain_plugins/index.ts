@@ -122,13 +122,34 @@ class DomainPluginPermissionsHandler extends ManageHandler {
 }
 
 class DomainPluginConfigHandler extends ManageHandler {
-    async get() {
-        this.response.template = 'domain_plugins_config.html';
-        this.response.body.current = {};
-        this.response.body.settings = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
-        for (const s of this.response.body.settings) {
-            this.response.body.current[s.key] = SystemModel.get(s.key);
+    async get({ domainId }) {
+        const pluginSetting = SettingModel.DOMAIN_PLUGIN_SETTINGS.find(s => s.family === 'plugins');
+
+        if (!pluginSetting) {
+            console.error('Plugin setting not found');
+            this.response.body.settings = [];
+            return;
         }
+
+        const pluginNames = yaml.load(pluginSetting.key) as string[];
+        console.log('pluginNames',pluginNames);
+
+        const relevantSettings = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => pluginNames.includes(s.key));
+
+        this.response.template = 'domain_plugins_config.html';
+        this.response.body.current = this.domain;
+        this.response.body.settings = relevantSettings;
+
+    }
+    async post(args) {
+        console.log(args);
+        if (args.operation) return;
+        const $set = {};
+        for (const key in args) {
+            if (SettingModel.DOMAIN_PLUGIN_SETTINGS_BY_KEY[key]) $set[key] = args[key];
+        }
+        await DomainModel.edit(args.domainId, $set);
+        this.response.redirect = this.url('domain_plugins_config');
     }
 }
 
@@ -146,7 +167,7 @@ class DomainPluginStoreHandler extends ManageHandler {
 
         this.response.template = 'domain_plugins_store.html';
         this.response.body.current = this.domain;
-        this.response.body.settings = SettingModel.DOMAIN_PLUGIN_SETTINGS;
+        this.response.body.settings = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => s.family === 'setting_domain_on_plugins');
         // for (const s of this.response.body.settings) {
         //     this.response.body.current[s.key] = DomainModel.get(s.key);
         // }

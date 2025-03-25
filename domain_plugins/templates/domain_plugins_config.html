@@ -1,5 +1,5 @@
-{% extends "manage_base.html" %}
-{% block manage_content %}
+{% extends "domain_base.html" %}
+{% block domain_content %}
 <div class="section">
 <form method="post">
 {%- for family, family_settings in settings|groupby('family') -%}{%- if family != 'setting_storage' %}
