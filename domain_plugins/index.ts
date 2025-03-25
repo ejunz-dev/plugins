@@ -97,7 +97,10 @@ class DomainPluginStoreHandler extends ManageHandler {
         const roles = await DomainModel.getRoles(domainId);
         this.response.template = 'domain_plugins.html';
         this.response.body = {
-            roles, PERMS_BY_FAMILY, domain: this.domain, log2,
+            roles,
+            PERMS_BY_FAMILY: { plugins: PERMS_BY_FAMILY.plugins },
+            domain: this.domain,
+            log2,
         };
         console.log('this.response.body', this.response.body);
     }
