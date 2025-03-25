@@ -3,7 +3,7 @@
 <form method="post">
 <div class="section">
   <div class="section__header">
-    <h1 class="section__title">{{ _('{0}: Plugins Manage').format(domain.name) }}</h1>
+    <h1 class="section__title">{{ _('{0}: Permissions').format(domain.name) }}</h1>
   </div>
   {% if roles.length == 3 %}
     <div class="section__body typo">
@@ -13,51 +13,57 @@
       </blockquote>
     </div>
   {% endif %}
-  <div class="section__body no-padding domain-users">
-    {%- for family, perms in PERMS_BY_FAMILY -%}
-      <div class="plugin-section">
-        <div class="plugin-header">
-          <h2>{{ _(family) }}</h2>
-          <button type="button" onclick="togglePermissions('{{ family }}')">{{ _('Manage') }}</button>
-        </div>
-        <div class="plugin-body" id="permissions-{{ family }}" style="display: none;">
-          <table class="data-table">
-            <colgroup>
-              <col class="col--description">
+  <div class="section__body no-padding domain-user">
+    <table class="data-table">
+      <colgroup>
+        <col class="col--description">
+        {%- for role in roles -%}
+          <col class="col--p">
+        {%- endfor -%}
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="col--description">{{ _('Permissions') }}</th>
+          {%- for role in roles -%}
+            <th class="col--p"><span data-tooltip="{{ role._id }}">{{ role._id }}</span></th>
+          {%- endfor -%}
+        </tr>
+      </thead>
+      {%- for family, perms in PERMS_BY_FAMILY -%}
+        <tbody>
+          <tr><td class="col--family" colspan="{{ (roles|length)+1 }}">{{ _(family) }}</td></tr>
+          {%- for perm in perms -%}
+            <tr>
+              <td class="col--description">{{ _(perm.desc) }}</td>
               {%- for role in roles -%}
-                <col class="col--p">
+                <td class="col--p">
+                  <label class="compact checkbox">
+                    <input name="{{ role._id }}" data-checkbox-group="{{ role._id }}" data-checkbox-range value="{{ log2(perm.key) }}" type="checkbox"{% if role.perm|bitand(perm.key) %} checked{% endif %}{% if role._id == 'root' %} disabled{% endif %}>
+                  </label>
+                </td>
               {%- endfor -%}
-            </colgroup>
-            <thead>
-              <tr>
-                <th class="col--description">{{ _('Plugins') }}</th>
-                {%- for role in roles -%}
-                  <th class="col--p"><span data-tooltip="{{ role._id }}">{{ role._id }}</span></th>
-                {%- endfor -%}
-              </tr>
-            </thead>
-            <tbody>
-              {%- for perm in perms -%}
-                <tr>
-                  <td class="col--description">{{ _(perm.desc) }}</td>
-                  {%- for role in roles -%}
-                    <td class="col--p">
-                      <label class="compact checkbox">
-                        <input name="{{ role._id }}" data-checkbox-group="{{ role._id }}" data-checkbox-range value="{{ log2(perm.key) }}" type="checkbox"{% if role.perm|bitand(perm.key) %} checked{% endif %}{% if role._id == 'root' %} disabled{% endif %}>
-                      </label>
-                    </td>
-                  {%- endfor -%}
-                </tr>
-              {%- endfor -%}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    {%- endfor -%}
+            </tr>
+          {%- endfor -%}
+        </tbody>
+      {%- endfor -%}
+        <tbody style="display:none">
+          <tr><td class="col--family" colspan="{{ (roles|length)+1 }}">placeholder</td></tr>
+          <tr>
+            <td class="col--description">placeholder</td>
+            {%- for role in roles -%}
+              <td class="col--p">
+                <label class="compact checkbox">
+                  <input name="{{ role._id }}" data-checkbox-group="{{ role._id }}" data-checkbox-range value="1000" type="checkbox" checked{% if role._id == 'root' %} disabled{% endif %}>
+                </label>
+              </td>
+            {%- endfor -%}
+          </tr>
+        </tbody>
+    </table>
   </div>
   <div class="section__body">
     <button class="rounded primary button" role="submit">
-      {{ _('Update Plugins') }}
+      {{ _('Update Permission') }}
     </button>
     <button type="button" class="rounded button" onclick="window.history.go(-1)">
       {{ _('Cancel') }}
@@ -65,15 +71,4 @@
   </div>
 </div>
 </form>
-
-<script>
-function togglePermissions(family) {
-    const section = document.getElementById('permissions-' + family);
-    if (section.style.display === 'none') {
-        section.style.display = 'block';
-    } else {
-        section.style.display = 'none';
-    }
-}
-</script>
 {% endblock %}

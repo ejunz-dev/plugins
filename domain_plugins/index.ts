@@ -98,7 +98,7 @@ class DomainPluginStoreHandler extends ManageHandler {
         this.response.template = 'domain_plugins.html';
         this.response.body = {
             roles,
-            PERMS_BY_FAMILY: { plugins: PERMS_BY_FAMILY.plugins },
+            PERMS_BY_FAMILY,
             domain: this.domain,
             log2,
         };
