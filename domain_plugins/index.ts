@@ -123,26 +123,38 @@ class DomainPluginPermissionsHandler extends ManageHandler {
 
 class DomainPluginConfigHandler extends ManageHandler {
     async get({ domainId }) {
-        console.log('SettingModel.DOMAIN_PLUGIN_SETTINGS',SettingModel.DOMAIN_PLUGIN_SETTINGS);
-        const pluginSetting = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => s.family === 'plugins');
-
-        if (!pluginSetting) {
-            console.error('Plugin setting not found');
-            this.response.body.settings = [];
-            return;
+        let allowedPlugins = this.domain.plugins;
+        if (!allowedPlugins) {
+            console.warn('allowedPlugins is undefined, using default empty array.');
+            allowedPlugins = '[]';
         }
-        console.log('pluginSetting',pluginSetting);
 
-        const pluginNames = pluginSetting.map(setting => setting.key);
-        console.log('pluginNames',pluginNames);
+        let allowedPluginsArray: string[] = [];
 
-        const relevantSettings = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => pluginNames.includes(s.key));
-        console.log('relevantSettings',relevantSettings);
-
+        try {
+            const parsed = yaml.load(allowedPlugins);
+            if (Array.isArray(parsed)) {
+                allowedPluginsArray = parsed;
+            } else {
+                throw new Error('Parsed allowedPlugins is not an array');
+            }
+        } catch (error) {
+            console.error('Error parsing allowedPlugins:', error);
+            allowedPluginsArray = []; 
+        }
+            const pluginSetting = SettingModel.DOMAIN_PLUGIN_SETTINGS;
+            const settingsMap = new Map(pluginSetting.map(s => [s.key, s]));
+            const completePluginSettings = allowedPluginsArray.map(pluginName => {
+                if (settingsMap.has(pluginName)) {
+                    return settingsMap.get(pluginName);
+                } else {
+                    console.warn(`No settings found for plugin: ${pluginName}`);
+                    return null;
+                }
+            });
         this.response.template = 'domain_plugins_config.html';
         this.response.body.current = this.domain;
-        this.response.body.settings = relevantSettings;
-        console.log('this.response.body.settings',this.response.body.settings);
+        this.response.body.settings = completePluginSettings;
     }
     async post(args) {
         console.log(args);
