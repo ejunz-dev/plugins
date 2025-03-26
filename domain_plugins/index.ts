@@ -170,7 +170,19 @@ class DomainPluginConfigHandler extends ManageHandler {
 
 class DomainPluginStoreHandler extends ManageHandler {
     async get({ domainId }) {
-        const allowedDomainsSetting = SettingModel.SYSTEM_SETTINGS.filter(s => s.key.endsWith('.allowed_domains'));
+        const T = SettingModel.SYSTEM_SETTINGS.filter(s => s.key.endsWith('.allowed_domains'));
+        const keynameArray = T.map(s => 
+            ({
+                key: s.key,
+                name: s.name
+            })
+        );
+
+        const allowedDomainsSetting = keynameArray.map(obj => ({
+            key: obj.key,
+            value: this.ctx.setting.get(obj.key),
+            name: obj.name
+        }));
 
         const domainPluginsStore = allowedDomainsSetting.reduce((acc, setting) => {
             const allowedDomains = yaml.load(setting.value) as string[];
