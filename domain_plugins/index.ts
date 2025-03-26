@@ -246,5 +246,34 @@ export async function apply(ctx: Context) {
 
     ctx.injectUI('ControlPanel', 'manage_plugins', (h) => ({}));
 
+    ctx.on('handler/before/SystemPlugin#post', (h) => {
+        const systemPlugins = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+        for (const s of systemPlugins) {
+            const beforeSystemPlugin = SystemModel.get(s.key);
+            const parsedBeforeSystemPlugin = yaml.load(beforeSystemPlugin);
+            h.initialState = h.initialState || {};
+            h.initialState[s.key] = parsedBeforeSystemPlugin || [];
+        }
+    });
+
+    ctx.on('handler/after/SystemPlugin#post', (h) => {
+        const systemPlugins = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+        for (const s of systemPlugins) {
+            const afterSystemPlugin = SystemModel.get(s.key);
+            const parsedAfterSystemPlugin = yaml.load(afterSystemPlugin);
+            const initialState = h.initialState && h.initialState[s.key];
+            if (initialState && JSON.stringify(initialState) !== JSON.stringify(parsedAfterSystemPlugin)) {
+                console.log(`SystemPlugin ${s.key} has changed:`, {
+                    before: initialState,
+                    after: parsedAfterSystemPlugin
+                });
+            }
+        }
+    });
+
+    ctx.on('handler/after/DomainPluginStore#post', (h) => {
+        console.log('DomainPluginStore#post',h);
+    });
+
 }
 
