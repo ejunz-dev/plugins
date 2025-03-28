@@ -257,7 +257,6 @@ export async function apply(ctx: Context) {
             h.initialState[s.key] = parsedBeforeSystemPlugin || [];
         }
     });
-
     ctx.on('handler/after/SystemPlugin#post', (h) => {
         const systemPlugins = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
         for (const s of systemPlugins) {
@@ -266,14 +265,21 @@ export async function apply(ctx: Context) {
             const initialState = h.initialState && h.initialState[s.key];
 
             if (initialState) {
-                const added = _.differenceWith(parsedAfterSystemPlugin as any[], initialState as any[], _.isEqual);
                 const removed = _.differenceWith(initialState as any[], parsedAfterSystemPlugin as any[], _.isEqual);
 
-                if (added.length > 0 || removed.length > 0) {
-                    console.log(`SystemPlugin ${s.key} has changed:`, {
-                        added: added,
+                if (removed.length > 0) {
+                    console.log(` ${s.key} has remove domain:`, {
                         removed: removed
                     });
+                    const Pluginname = s.name;
+                    const PluginFamily = s.family;
+                    const pluginsPerm = PERMS_BY_FAMILY['plugins'];
+                    const PermToremove = pluginsPerm.filter(permission => permission.name === Pluginname);
+                    console.log(`Related permissions for ${Pluginname}:`, PermToremove);
+                    console.log('h.domain.roles',h.domain.roles);
+                    //TODO delete the related permissions
+                    //TODO callback dispose 
+                    
                 }
             }
         }
