@@ -14,6 +14,8 @@ import {
 import { log2 } from 'ejun'
 import { loadedPlugins } from 'ejun';
 import yaml from 'js-yaml';
+import _ from 'lodash';
+
 
 function set(key: string, value: any) {
     if (SettingModel.SYSTEM_SETTINGS_BY_KEY[key]) {
@@ -262,11 +264,17 @@ export async function apply(ctx: Context) {
             const afterSystemPlugin = SystemModel.get(s.key);
             const parsedAfterSystemPlugin = yaml.load(afterSystemPlugin);
             const initialState = h.initialState && h.initialState[s.key];
-            if (initialState && JSON.stringify(initialState) !== JSON.stringify(parsedAfterSystemPlugin)) {
-                console.log(`SystemPlugin ${s.key} has changed:`, {
-                    before: initialState,
-                    after: parsedAfterSystemPlugin
-                });
+
+            if (initialState) {
+                const added = _.differenceWith(parsedAfterSystemPlugin as any[], initialState as any[], _.isEqual);
+                const removed = _.differenceWith(initialState as any[], parsedAfterSystemPlugin as any[], _.isEqual);
+
+                if (added.length > 0 || removed.length > 0) {
+                    console.log(`SystemPlugin ${s.key} has changed:`, {
+                        added: added,
+                        removed: removed
+                    });
+                }
             }
         }
     });
