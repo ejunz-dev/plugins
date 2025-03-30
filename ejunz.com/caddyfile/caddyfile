@@ -2,8 +2,17 @@ beta.ejunz.com {
     reverse_proxy http://127.0.0.1:10086
 }
 
-bot.ejunz.com {
-    reverse_proxy http://127.0.0.1:5140
+prometheus.ejunz.com {
+    reverse_proxy http://127.0.0.1:10001
 }
+
+grafana.ejunz.com {
+    reverse_proxy http://127.0.0.1:10002
+}
+
+bot.ejunz.com {
+    reverse_proxy http://127.0.0.1:10003
+}
+
 
 
