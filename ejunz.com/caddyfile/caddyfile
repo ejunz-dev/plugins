@@ -1,0 +1,9 @@
+beta.ejunz.com {
+    reverse_proxy http://127.0.0.1:10086
+}
+
+bot.ejunz.com {
+    reverse_proxy http://127.0.0.1:5140
+}
+
+
