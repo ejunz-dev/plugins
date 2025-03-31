@@ -1,4 +1,18 @@
+{
+        admin 0.0.0.0:2019 {
+                origins 0.0.0.0
+        }
+        metrics {
+                per_host
+        }
+}
+
+
 beta.ejunz.com {
+    reverse_proxy http://127.0.0.1:10086
+}
+
+jhost-uk.ejunz.com {
     reverse_proxy http://127.0.0.1:10086
 }
 
@@ -13,6 +27,3 @@ grafana.ejunz.com {
 bot.ejunz.com {
     reverse_proxy http://127.0.0.1:10003
 }
-
-
-
