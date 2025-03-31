@@ -27,3 +27,11 @@ grafana.ejunz.com {
 bot.ejunz.com {
     reverse_proxy http://127.0.0.1:10003
 }
+
+bot-api.ejunz.com {
+    reverse_proxy https://api.telegram.org {
+        header_up Host api.telegram.org
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
