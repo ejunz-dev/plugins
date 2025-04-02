@@ -115,6 +115,8 @@ class DomainPluginPermissionsHandler extends ManageHandler {
             roles[role] = 0n;
             for (const r of perms) roles[role] |= 1n << BigInt(r);
         }
+        console.log('roles',roles);
+        console.log('this.request.body',this.request.body);
         await Promise.all([
             DomainModel.setRoles(domainId, roles),
             OplogModel.log(this, 'domain.setRoles', { roles }),
@@ -257,7 +259,7 @@ export async function apply(ctx: Context) {
             h.initialState[s.key] = parsedBeforeSystemPlugin || [];
         }
     });
-    ctx.on('handler/after/SystemPlugin#post', (h) => {
+    ctx.on('handler/after/SystemPlugin#post', async (h) => {
         const systemPlugins = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
         for (const s of systemPlugins) {
             const afterSystemPlugin = SystemModel.get(s.key);
@@ -272,14 +274,17 @@ export async function apply(ctx: Context) {
                         removed: removed
                     });
                     const Pluginname = s.name;
-                    const PluginFamily = s.family;
                     const pluginsPerm = PERMS_BY_FAMILY['plugins'];
                     const PermToremove = pluginsPerm.filter(permission => permission.name === Pluginname);
-                    console.log(`Related permissions for ${Pluginname}:`, PermToremove);
-                    console.log('h.domain.roles',h.domain.roles);
-                    //TODO delete the related permissions
-                    //TODO callback dispose 
-                    
+                    for (const role in h.domain.roles) {
+                        let currentPerms = BigInt(h.domain.roles[role]); 
+                        // 取消每个相关权限
+                        for (const perm of PermToremove) {
+                            currentPerms &= ~BigInt(perm.key); // 使用位与运算和取反运算取消权限
+                        }
+                        // 更新角色的权限位掩码
+                        h.domain.roles[role] = currentPerms.toString(); // 更新为字符串形式
+                    }
                 }
             }
         }
