@@ -222,6 +222,7 @@ class DomainPluginStoreHandler extends ManageHandler {
 
 
 export async function apply(ctx: Context) {
+    const unregisterPermission = global.Ejunz.model.builtin.unregisterPermission;
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_store', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_permissions', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_config', { family: 'plugins', icon: 'book' });
@@ -284,6 +285,7 @@ export async function apply(ctx: Context) {
                         }
                         // 更新角色的权限位掩码
                         h.domain.roles[role] = currentPerms.toString(); // 更新为字符串形式
+                        await DomainModel.setRoles(h.domain._id, h.domain.roles);
                     }
                 }
             }
