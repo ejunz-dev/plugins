@@ -96,6 +96,36 @@ class DomainPluginPermissionsHandler extends ManageHandler {
    // @requireSudo
     async get({ domainId }) {
         const roles = await DomainModel.getRoles(domainId);
+        const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+        const T = D.filter(s => s.key.includes('allowed_domains'));
+        const DomainBannedPlugins = {};
+        const BannedPlugins:string[] = [];
+
+        for (const s of T) {
+            const systemPluginsKey = SystemModel.get(s.key);
+            const systemPluginsName = s.name;
+            console.log('systemPluginsName',systemPluginsName);
+            const systemPluginsMap = {}; 
+            systemPluginsMap[systemPluginsName] = systemPluginsKey;
+            console.log('systemPluginsMap',systemPluginsMap);
+
+            console.log('domainId',domainId);
+
+            if (!systemPluginsMap[systemPluginsName].includes(domainId)) {
+                const bannedPlugins = systemPluginsName;
+                BannedPlugins.push(bannedPlugins);
+            }
+        }
+      
+        for (const bannedPlugin of BannedPlugins) {
+            for (const Type in PERMS_BY_FAMILY) {
+                PERMS_BY_FAMILY[Type] = PERMS_BY_FAMILY[Type].filter(permission => permission.name !== bannedPlugin);
+            }
+        }
+        console.log('Updated PERMS_BY_FAMILY', PERMS_BY_FAMILY);
+        console.log('BannedPlugins',BannedPlugins);
+
+        
         this.response.template = 'domain_plugins_permissions.html';
         this.response.body = {
             roles,
@@ -277,6 +307,7 @@ export async function apply(ctx: Context) {
                     const Pluginname = s.name;
                     const pluginsPerm = PERMS_BY_FAMILY['plugins'];
                     const PermToremove = pluginsPerm.filter(permission => permission.name === Pluginname);
+                    console.log('PermToremove',PermToremove);
                     for (const role in h.domain.roles) {
                         let currentPerms = BigInt(h.domain.roles[role]); 
                         // 取消每个相关权限
@@ -290,6 +321,10 @@ export async function apply(ctx: Context) {
                 }
             }
         }
+    });
+
+    ctx.on('handler/after/Home#get', (h) => {
+        console.log('handler.UiContext',h.UiContext);
     });
 
     ctx.on('handler/after/DomainPluginStore#post', (h) => {

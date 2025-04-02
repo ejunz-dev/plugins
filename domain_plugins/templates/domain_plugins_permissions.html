@@ -1,5 +1,10 @@
 {% extends "domain_base.html" %}
 {% block domain_content %}
+<script>
+{{ set(UiContext, {
+  PermToremove: PermToremove
+}) }}
+</script>
 <form method="post">
 <div class="section">
   <div class="section__header">
