@@ -100,23 +100,16 @@ class DomainPluginPermissionsHandler extends ManageHandler {
         const T = D.filter(s => s.key.includes('allowed_domains'));
         const DomainBannedPlugins = {};
         const BannedPlugins:string[] = [];
-
         for (const s of T) {
             const systemPluginsKey = SystemModel.get(s.key);
             const systemPluginsName = s.name;
-            console.log('systemPluginsName',systemPluginsName);
             const systemPluginsMap = {}; 
             systemPluginsMap[systemPluginsName] = systemPluginsKey;
-            console.log('systemPluginsMap',systemPluginsMap);
-
-            console.log('domainId',domainId);
-
             if (!systemPluginsMap[systemPluginsName].includes(domainId)) {
                 const bannedPlugins = systemPluginsName;
                 BannedPlugins.push(bannedPlugins);
             }
         }
-      
         let NEW_PERMS_BY_FAMILY = { ...PERMS_BY_FAMILY };
 
         if (BannedPlugins.length > 0) {
@@ -128,10 +121,6 @@ class DomainPluginPermissionsHandler extends ManageHandler {
         } else {
             NEW_PERMS_BY_FAMILY = PERMS_BY_FAMILY;
         }
-        console.log('Updated PERMS_BY_FAMILY', NEW_PERMS_BY_FAMILY);
-        console.log('BannedPlugins',BannedPlugins);
-
-        
         this.response.template = 'domain_plugins_permissions.html';
         this.response.body = {
             roles,
@@ -151,8 +140,6 @@ class DomainPluginPermissionsHandler extends ManageHandler {
             roles[role] = 0n;
             for (const r of perms) roles[role] |= 1n << BigInt(r);
         }
-        console.log('roles',roles);
-        console.log('this.request.body',this.request.body);
         await Promise.all([
             DomainModel.setRoles(domainId, roles),
             OplogModel.log(this, 'domain.setRoles', { roles }),
@@ -163,28 +150,28 @@ class DomainPluginPermissionsHandler extends ManageHandler {
 
 class DomainPluginConfigHandler extends ManageHandler {
     async get({ domainId }) {
-        let allowedPlugins = this.domain.plugins;
-        if (!allowedPlugins) {
-            console.warn('allowedPlugins is undefined, using default empty array.');
-            allowedPlugins = '[]';
+        let Plugins = this.domain.plugins;
+        if (!Plugins) {
+            console.warn('Plugins is undefined, using default empty array.');
+            Plugins = '[]';
         }
 
-        let allowedPluginsArray: string[] = [];
+        let PluginsArray: string[] = [];
 
         try {
-            const parsed = yaml.load(allowedPlugins);
+            const parsed = yaml.load(Plugins);
             if (Array.isArray(parsed)) {
-                allowedPluginsArray = parsed;
+                PluginsArray = parsed;
             } else {
                 throw new Error('Parsed allowedPlugins is not an array');
             }
         } catch (error) {
             console.error('Error parsing allowedPlugins:', error);
-            allowedPluginsArray = []; 
+            PluginsArray = []; 
         }
             const pluginSetting = SettingModel.DOMAIN_PLUGIN_SETTINGS;
             const settingsMap = new Map(pluginSetting.map(s => [s.key, s]));
-            const completePluginSettings = allowedPluginsArray.map(pluginName => {
+            let completePluginSettings = PluginsArray.map(pluginName => {
                 if (settingsMap.has(pluginName)) {
                     return settingsMap.get(pluginName);
                 } else {
@@ -192,6 +179,27 @@ class DomainPluginConfigHandler extends ManageHandler {
                     return null;
                 }
             });
+        const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+        const T = D.filter(s => s.key.includes('allowed_domains'));
+        const DomainBannedPlugins = {};
+        const BannedPlugins:string[] = [];
+
+        for (const s of T) {
+            const systemPluginsKey = SystemModel.get(s.key);
+            const systemPluginsName = s.name;
+            const systemPluginsMap = {}; 
+            systemPluginsMap[systemPluginsName] = systemPluginsKey;
+
+            if (!systemPluginsMap[systemPluginsName].includes(domainId)) {
+                const bannedPlugins = systemPluginsName;
+                BannedPlugins.push(bannedPlugins);
+            }
+        }
+
+        for (const bannedPlugin of BannedPlugins) {
+            completePluginSettings = completePluginSettings.filter(plugin => plugin.key !== bannedPlugin);
+        }
+
         this.response.template = 'domain_plugins_config.html';
         this.response.body.current = this.domain;
         this.response.body.settings = completePluginSettings;
