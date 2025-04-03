@@ -117,19 +117,25 @@ class DomainPluginPermissionsHandler extends ManageHandler {
             }
         }
       
-        for (const bannedPlugin of BannedPlugins) {
-            for (const Type in PERMS_BY_FAMILY) {
-                PERMS_BY_FAMILY[Type] = PERMS_BY_FAMILY[Type].filter(permission => permission.name !== bannedPlugin);
+        let NEW_PERMS_BY_FAMILY = { ...PERMS_BY_FAMILY };
+
+        if (BannedPlugins.length > 0) {
+            for (const bannedPlugin of BannedPlugins) {
+                for (const Type in NEW_PERMS_BY_FAMILY) {
+                    NEW_PERMS_BY_FAMILY[Type] = NEW_PERMS_BY_FAMILY[Type].filter(permission => permission.name !== bannedPlugin);
+                }
             }
+        } else {
+            NEW_PERMS_BY_FAMILY = PERMS_BY_FAMILY;
         }
-        console.log('Updated PERMS_BY_FAMILY', PERMS_BY_FAMILY);
+        console.log('Updated PERMS_BY_FAMILY', NEW_PERMS_BY_FAMILY);
         console.log('BannedPlugins',BannedPlugins);
 
         
         this.response.template = 'domain_plugins_permissions.html';
         this.response.body = {
             roles,
-            PERMS_BY_FAMILY,
+            NEW_PERMS_BY_FAMILY,
             domain: this.domain,
             log2,
         };
