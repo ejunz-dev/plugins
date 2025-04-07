@@ -219,19 +219,21 @@ class DomainSpaceConfigHandler extends ManageHandler {
         }
         for (const s of spacename) {
             const spacePath = `/root/Dev/ejunz/plugins/${s}/templates`;
-            const defaultPath = `/root/Dev/ejunz/packages/ui-default/templates/partials/default`;
             //TODO dynamic import path
 
             const spacefiles = fs.readdirSync(spacePath).filter(file => 
                 !file.includes('space') && !file.endsWith('_main.html')
             ).map(file => file.replace(/\.html$/, ''));
-            const defaultfiles = fs.readdirSync(defaultPath).filter(file => 
-                !file.includes('space') && !file.endsWith('_main.html')
-            ).map(file => file.replace(/\.html$/, ''));
+            
             spacenameColumnsections[s] = spacefiles;
-            defaultColumnsections.push(defaultfiles);
+            
         }
- 
+        const defaultPath = `/root/Dev/ejunz/packages/ui-default/templates/partials/default`;
+        const defaultfiles = fs.readdirSync(defaultPath).filter(file => 
+            !file.includes('space') && !file.endsWith('_main.html')
+        ).map(file => file.replace(/\.html$/, ''));
+        defaultColumnsections.push(defaultfiles);
+
         let spaces = this.domain.spaces;
         if (!spaces) {
             console.warn('spaces is undefined, using default empty array.');
@@ -305,7 +307,6 @@ class DomainSpaceStoreHandler extends ManageHandler {
                 name: s.name
             })
         );
-
         const allowedDomainsSetting = keynameArray.map(obj => ({
             key: obj.key,
             value: this.ctx.setting.get(obj.key),
