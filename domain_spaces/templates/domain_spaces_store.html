@@ -1,0 +1,16 @@
+{% extends "domain_base.html" %}
+{% block domain_content %}
+<div class="section">
+  <h2>Domain Spaces Store</h2>
+  <ul>
+    {% for space in domainspacesStore %}
+      <li>{{ space }}</li>
+    {% endfor %}
+  </ul>
+</div>
+<div class="section">
+  {% include "partials/setting.html" %}
+</div>
+
+  
+{% endblock %}

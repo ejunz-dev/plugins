@@ -97,7 +97,7 @@ class DomainPluginPermissionsHandler extends ManageHandler {
     async get({ domainId }) {
         const roles = await DomainModel.getRoles(domainId);
         const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
-        const T = D.filter(s => s.key.includes('allowed_domains'));
+        const T = D.filter(s => s.key.includes('plugins_allowed_domains'));
         const DomainBannedPlugins = {};
         const BannedPlugins:string[] = [];
         for (const s of T) {
@@ -180,7 +180,7 @@ class DomainPluginConfigHandler extends ManageHandler {
                 }
             });
         const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
-        const T = D.filter(s => s.key.includes('allowed_domains'));
+        const T = D.filter(s => s.key.includes('plugins_allowed_domains'));
         const DomainBannedPlugins = {};
         const BannedPlugins:string[] = [];
 
@@ -218,7 +218,7 @@ class DomainPluginConfigHandler extends ManageHandler {
 
 class DomainPluginStoreHandler extends ManageHandler {
     async get({ domainId }) {
-        const T = SettingModel.SYSTEM_SETTINGS.filter(s => s.key.endsWith('.allowed_domains'));
+        const T = SettingModel.SYSTEM_SETTINGS.filter(s => s.key.endsWith('.plugins_allowed_domains'));
         const keynameArray = T.map(s => 
             ({
                 key: s.key,
@@ -247,8 +247,8 @@ class DomainPluginStoreHandler extends ManageHandler {
         //     this.response.body.current[s.key] = DomainModel.get(s.key);
         // }
         this.response.body.domainPluginsStore = domainPluginsStore;
-        console.log(this.response.body.current);
-        console.log(this.response.body.settings);
+        console.log('this.response.body.current',this.response.body.current);
+        console.log('this.response.body.settings',this.response.body.settings);
 
 
     }
@@ -266,7 +266,6 @@ class DomainPluginStoreHandler extends ManageHandler {
 
 
 export async function apply(ctx: Context) {
-    const unregisterPermission = global.Ejunz.model.builtin.unregisterPermission;
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_store', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_permissions', { family: 'plugins', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_plugins_config', { family: 'plugins', icon: 'book' });
