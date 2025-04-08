@@ -200,7 +200,16 @@ export class FilespaceHandler extends FilespaceBaseHandler {
     }
 
 }    
-
+    SettingModel.DomainSpacePluginSetting(
+        SettingModel.Setting
+        (   
+            'spaces', 
+            'filespace_plugin', 
+            [], 
+            'yaml',
+            'filespace_plugins'
+        ),
+    );
 export async function apply(ctx: Context) {
     const PERM = {
         PERM_VIEW_FILESPACE: 1n << 78n,

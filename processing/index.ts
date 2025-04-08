@@ -233,4 +233,14 @@ export async function apply(ctx: Context) {
             'processing_front'
         ),
     );
+    SettingModel.DomainSpacePluginSetting(
+        SettingModel.Setting
+        (   
+            'spaces', 
+            'processing_plugin', 
+            [], 
+            'yaml',
+            'processing_plugins'
+        ),
+    );
 }

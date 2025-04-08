@@ -576,35 +576,37 @@ export async function apply(ctx: Context) {
     });
 
 
-    const customchecker = (handler) => {
-        return () => true;
-    }
 //TODO: 通配所有spaceConfig
     ctx.on('handler/after', (h) => {
-        const filspacePluginConfig = h.domain.filespace_plugin;
-        console.log('filspacePluginConfig', filspacePluginConfig);
-        
-        const FilespacePluginsConfig = yaml.load(filspacePluginConfig) as any; 
-        console.log('FilespacePluginsConfig', FilespacePluginsConfig);
-        
-        const filespacePaths = FilespacePluginsConfig.filespace.map(item => item.path);
-        const overrideNav = FilespacePluginsConfig.filespace.map(item => ({
-            name: item.name, 
-            args: {}, 
-            checker: ()=> true 
-        }));
+        // TODO 添加system限制检查
+        const availableSpaces = h.domain.spaces;
+        const availableSpacesArray = yaml.load(availableSpaces) as string[];
+        console.log('availableSpacesArray', availableSpacesArray);
+        for (const space of availableSpacesArray) {
+            const spaceConfig = h.domain[`${space}_plugin`];
     
-        console.log('filespacePaths', filespacePaths);
-        console.log('overrideNav', overrideNav);
+            const spacePluginConfig = yaml.load(spaceConfig) as any; 
+            console.log('spacePluginConfig', spacePluginConfig);
+            
+            const pluginRoutes = spacePluginConfig.filespace.map(item => item.route);
+            const overrideNav = spacePluginConfig.filespace.map(item => ({
+                name: item.name, 
+                args: {}, 
+                checker: ()=> true 
+            }));
+    
+            console.log('pluginRoutes', pluginRoutes);
+            console.log('overrideNav', overrideNav);
 
-        if (filespacePaths.some(path => h.request.path.includes(path))) {
+            if (pluginRoutes.some(route => h.request.path.includes(route))) {
 
-        if (!h.response.body.overrideNav) {
-            h.response.body.overrideNav = []; 
-        }
-            h.UiContext.spacename = 'filespace';
-            h.response.body.overrideNav.push(...overrideNav); 
-        }
+                if (!h.response.body.overrideNav) {
+                    h.response.body.overrideNav = []; 
+                }
+                    h.UiContext.spacename = space;
+                    h.response.body.overrideNav.push(...overrideNav); 
+                }
+            }
         console.log('h.response.body.overrideNav', h.response.body.overrideNav);
     });
    
