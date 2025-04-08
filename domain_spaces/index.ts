@@ -14,7 +14,6 @@ import {
 import { log2 } from 'ejun'
 import yaml from 'js-yaml';
 import _ from 'lodash';
-
 interface ResultItem {
     name: string;
     Systemallowed: any;
@@ -314,8 +313,8 @@ class DomainSpaceStoreHandler extends ManageHandler {
         }));
 
         const domainspacesStore = allowedDomainsSetting.reduce((acc, setting) => {
-            const allowedDomains = yaml.load(setting.value) as string[];
-            if (allowedDomains.includes(domainId)) {
+            const allowedDomains = yaml.load(setting.value) as string[] || [];
+            if (Array.isArray(allowedDomains) && allowedDomains.includes(domainId)) {
                 acc.push(setting.name);
             }
             return acc;
@@ -388,22 +387,31 @@ export async function apply(ctx: Context) {
             const initialState = h.initialState && h.initialState[s.key];
 
             if (initialState) {
-                const removed = _.differenceWith(initialState as any[], parsedAfterSystemSpace as any[], _.isEqual);
+                const updateDomains = _.differenceWith(initialState as any[], parsedAfterSystemSpace as any[], _.isEqual);
 
-                if (removed.length > 0) {
-                    console.log(` ${s.key} has remove domain:`, {
-                        removed: removed
+                if (updateDomains.length > 0) {
+                    console.log(` ${s.name} has update domains: ${updateDomains}`, {
+                        updateDomains: updateDomains
                     });
                     const Spacename = s.name;
                     const spacesPerm = PERMS_BY_FAMILY['spaces'];
                     const PermToremove = spacesPerm.filter(permission => permission.name === Spacename);
-                    for (const role in h.domain.roles) {
-                        let currentPerms = BigInt(h.domain.roles[role]); 
-                        for (const perm of PermToremove) {
-                            currentPerms &= ~BigInt(perm.key);
+                    const targetDomains = updateDomains
+                    for (const domain of targetDomains) {
+                        const domainRoles: any = await DomainModel.getRoles(domain);
+                        const updatedDomainRoles: { [key: string]: string } = {};
+                        for (const role in domainRoles) {
+                            if (domainRoles[role]._id === 'root') {
+                                console.log('root role:', domainRoles[role]);
+                                continue; 
+                            }
+                            let currentPerms = BigInt(domainRoles[role].perm);
+                            for (const perm of PermToremove) {
+                                currentPerms &= ~BigInt(perm.key);
+                            }
+                            updatedDomainRoles[domainRoles[role]._id] = currentPerms.toString();
                         }
-                        h.domain.roles[role] = currentPerms.toString();
-                        await DomainModel.setRoles(h.domain._id, h.domain.roles);
+                        await DomainModel.setRoles(domain, updatedDomainRoles);
                     }
                 }
             }
