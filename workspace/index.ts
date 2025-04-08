@@ -15,7 +15,9 @@ import {
 import { log2 } from 'ejun'
 import yaml from 'js-yaml';
 import _ from 'lodash';
-export class FilespaceBaseHandler extends Handler {
+
+
+export class WorkspaceBaseHandler extends Handler {
     async after(domainId: string) {
         this.response.body.overrideNav = [
             {
@@ -29,7 +31,7 @@ export class FilespaceBaseHandler extends Handler {
 }
 
 
-export class FilespaceHandler extends FilespaceBaseHandler {
+export class WorkspaceHandler extends WorkspaceBaseHandler {
     uids = new Set<number>();
 
     collectUser(uids: number[]) {
@@ -143,19 +145,21 @@ export class FilespaceHandler extends FilespaceBaseHandler {
     }
 
     async get({ domainId }) {
-        const filespaceConfig = this.domain.filespace_config;
+        const workspaceConfig = this.domain.workspace_config;
+        console.log('workspaceConfig', workspaceConfig);
 
-        if (!filespaceConfig) {
+        // 检查 processingConfig 是否为 undefined
+        if (!workspaceConfig) {
             this.response.body = {
-                contents: [{ message: '需要进行配置 filespace' }],
+                contents: [{ message: '需要进行配置 workspace' }],
                 udict: {},
                 domain: this.domain,
             };
             return;
         }
 
-        console.log('filespaceConfig', filespaceConfig);
-        const info = yaml.load(filespaceConfig) as any;
+        console.log('workspaceConfig', workspaceConfig);
+        const info = yaml.load(workspaceConfig) as any;
         console.log('info', info);
         
         const contents = [];
@@ -190,7 +194,7 @@ export class FilespaceHandler extends FilespaceBaseHandler {
         }
     
         const udict = await UserModel.getList(domainId, Array.from(this.uids));
-        this.response.template = 'filespace_main.html';
+        this.response.template = 'workspace_main.html';
         this.response.body = {
             contents,
             udict,
@@ -201,42 +205,31 @@ export class FilespaceHandler extends FilespaceBaseHandler {
 
 }    
 
+
 export async function apply(ctx: Context) {
-    const PERM = {
-        PERM_VIEW_FILESPACE: 1n << 78n,
-    };
 
-   ctx.injectUI('NavMainDropdown', 'filespace_main', { prefix: 'filespace' }, PERM.PERM_VIEW_FILESPACE);
-
-    global.Ejunz.model.builtin.registerSpacePermission(
-        'spaces',
-        PERM.PERM_VIEW_FILESPACE, 
-        'View filespace',
-        true,
-        'filespace'
-    );
-    
-    ctx.Route('filespace_main', '/filespace', FilespaceHandler,PERM.PERM_VIEW_FILESPACE);
     SettingModel.DomainSpaceConfigSetting(
         SettingModel.Setting
         (   
             'spaces', 
-            'filespace_config', 
+            'workspace_config', 
             [], 
             'yaml', 
-            'filespace_front'
+            'workspace_front'
         ),
     );
     SettingModel.DomainSpacePluginSetting(
         SettingModel.Setting
         (   
             'spaces', 
-            'filespace_plugin', 
+            'workspace_plugin', 
             [], 
             'yaml',
-            'filespace_plugins'
+            'workspace_plugins'
         ),
     );
+
+    ctx.Route('workspace_main', '/workspace', WorkspaceHandler);
 
 
 }
