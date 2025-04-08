@@ -576,7 +576,6 @@ export async function apply(ctx: Context) {
     });
 
 
-//TODO: 通配所有spaceConfig
     ctx.on('handler/after', (h) => {
         // TODO 添加system限制检查
         const availableSpaces = h.domain.spaces;
@@ -584,29 +583,53 @@ export async function apply(ctx: Context) {
         console.log('availableSpacesArray', availableSpacesArray);
         for (const space of availableSpacesArray) {
             const spaceConfig = h.domain[`${space}_plugin`];
-    
-            const spacePluginConfig = yaml.load(spaceConfig) as any; 
+
+            if (!spaceConfig) {
+                console.warn(`spaceConfig for ${space} is undefined`);
+                continue;
+            }
+
+            let spacePluginConfig;
+            try {
+                spacePluginConfig = yaml.load(spaceConfig) as any;
+            } catch (error) {
+                console.error(`Failed to parse spaceConfig for ${space}:`, error);
+                continue;
+            }
+
             console.log('spacePluginConfig', spacePluginConfig);
+
+            if (!spacePluginConfig || !spacePluginConfig[space]) {
+                console.warn(`spacePluginConfig or ${space} for ${space} is invalid`);
+                continue;
+            }
+
+            const pluginRoutes = spacePluginConfig[space].map((item: any) => item.route);
             
-            const pluginRoutes = spacePluginConfig.filespace.map(item => item.route);
-            const overrideNav = spacePluginConfig.filespace.map(item => ({
-                name: item.name, 
-                args: {}, 
-                checker: ()=> true 
+            const spaceDefaultRoute = `/${space}`;
+            console.log('spaceDefaultRoute', spaceDefaultRoute);
+
+            pluginRoutes.push(spaceDefaultRoute);
+
+            const overrideNav = spacePluginConfig[space].map((item: any) => ({
+                name: item.name,
+                args: {},
+                checker: () => true
             }));
-    
+
             console.log('pluginRoutes', pluginRoutes);
             console.log('overrideNav', overrideNav);
 
             if (pluginRoutes.some(route => h.request.path.includes(route))) {
-
                 if (!h.response.body.overrideNav) {
-                    h.response.body.overrideNav = []; 
+                    h.response.body.overrideNav = [];
                 }
-                    h.UiContext.spacename = space;
-                    h.response.body.overrideNav.push(...overrideNav); 
-                }
+                h.UiContext.spacename = spacePluginConfig[space].find((item: any) => h.request.path.includes(item.route))?.name || space;
+                console.log('h.UiContext.spacename', h.UiContext.spacename);
+
+                h.response.body.overrideNav.push(...overrideNav);
             }
+        }
         console.log('h.response.body.overrideNav', h.response.body.overrideNav);
     });
    
