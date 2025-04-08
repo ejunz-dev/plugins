@@ -14,6 +14,8 @@ import {
 import { log2 } from 'ejun'
 import yaml from 'js-yaml';
 import _ from 'lodash';
+import fs from 'fs';
+
 interface ResultItem {
     name: string;
     Systemallowed: any;
@@ -206,9 +208,7 @@ class DomainSpacePermissionsHandler extends ManageHandler {
 
 class DomainSpaceConfigHandler extends ManageHandler {
     async get({ domainId }) {
-        const fs = require('fs');
-        const path = require('path');
-        let spacename = yaml.load(this.domain.spaces) as string[];
+        const spacename = yaml.load(this.domain.spaces) as string[];
         const spacenameColumnsections: { [key: string]: string[] } = {};
         const defaultColumnsections: string[] = [];
 
@@ -252,8 +252,13 @@ class DomainSpaceConfigHandler extends ManageHandler {
             console.error('Error parsing allowedspaces:', error);
             spacesArray = []; 
         }
-            const spacesetting = SettingModel.DOMAIN_SPACE_SETTINGS;
-            const settingsMap = new Map(spacesetting.map(s => [s.key, s]));
+            const spacesetting = SettingModel.DOMAIN_SPACE_CONFIG_SETTINGS;
+            const settingsMap = new Map(
+                spacesetting.map(s => {
+                    const keyPrefix = s.key.split('_')[0];
+                    return [keyPrefix, s];
+                })
+            );
             console.log('settingsMap', settingsMap);
             let completespacesettings = await Promise.all(spacesArray.map(async (spaceName) => {
                 if (settingsMap.has(spaceName)) {
@@ -286,12 +291,22 @@ class DomainSpaceConfigHandler extends ManageHandler {
 
     }
     async post(args) {
-        console.log(args);
+        console.log('DOMAIN_SPACE_CONFIG_SETTINGS', SettingModel.DOMAIN_SPACE_CONFIG_SETTINGS);
+        console.log('args', args);
+        
         if (args.operation) return;
         const $set = {};
+
         for (const key in args) {
-            if (SettingModel.DOMAIN_SPACE_SETTINGS_BY_KEY[key]) $set[key] = args[key];
+            const setting = SettingModel.DOMAIN_SPACE_CONFIG_SETTINGS.find(s => s.key === key);
+            if (setting) {
+                $set[key] = args[key];
+            }
         }
+
+        console.log('$set', $set);
+        console.log('args.domainId', args.domainId);
+
         await DomainModel.edit(args.domainId, $set);
         this.response.redirect = this.url('domain_spaces_config');
     }
@@ -322,7 +337,7 @@ class DomainSpaceStoreHandler extends ManageHandler {
 
         this.response.template = 'domain_spaces_store.html';
         this.response.body.current = this.domain;
-        this.response.body.settings = SettingModel.DOMAIN_SPACE_SETTINGS.filter(s => s.family === 'setting_domain_on_spaces');
+        this.response.body.settings = SettingModel.DOMAIN_SPACE_CONFIG_SETTINGS.filter(s => s.family === 'setting_domain_on_spaces');
         // for (const s of this.response.body.settings) {
         //     this.response.body.current[s.key] = DomainModel.get(s.key);
         // }
@@ -333,24 +348,107 @@ class DomainSpaceStoreHandler extends ManageHandler {
         if (args.operation) return;
         const $set = {};
         for (const key in args) {
-            if (SettingModel.DOMAIN_SPACE_SETTINGS_BY_KEY[key]) $set[key] = args[key];
+            if (SettingModel.DOMAIN_SPACE_CONFIG_SETTINGS_BY_KEY[key]) $set[key] = args[key];
         }
         await DomainModel.edit(args.domainId, $set);
         this.response.redirect = this.url('domain_spaces_store');
     }
 }
+class DomainSpacePluginHandler extends ManageHandler {
+    async get({ domainId }) {
+
+        let spaces = this.domain.spaces;
+        if (!spaces) {
+            console.warn('spaces is undefined, using default empty array.');
+            spaces = '[]';
+        }
+
+        let spacesArray: string[] = [];
+
+        try {
+            const parsed = yaml.load(spaces);
+            if (Array.isArray(parsed)) {
+                spacesArray = parsed;
+            } else {
+                throw new Error('Parsed allowedspaces is not an array');
+            }
+        } catch (error) {
+            console.error('Error parsing allowedspaces:', error);
+            spacesArray = []; 
+        }
+            const spacesetting = SettingModel.DOMAIN_SPACE_PLUGIN_SETTINGS;
+            const settingsMap = new Map(
+                spacesetting.map(s => {
+                    const keyPrefix = s.key.split('_')[0];
+                    return [keyPrefix, s];
+                })
+            );
+            console.log('settingsMap', settingsMap);
+            let completespacesettings = await Promise.all(spacesArray.map(async (spaceName) => {
+                if (settingsMap.has(spaceName)) {
+                    const spaceSettings = settingsMap.get(spaceName);
+                    
+                    const hasAccess = await checkAccess(domainId, spaceName);
+                    
+                    if (hasAccess) {
+                        return {
+                            ...spaceSettings,
+                        };
+                    } else {
+                        console.warn(`No access for space: ${spaceName}`);
+                        return null;
+                    }
+                } else {
+                    console.warn(`No settings found for space: ${spaceName}`);
+                    return null;
+                }
+            }));
+            
+            completespacesettings = completespacesettings.filter(setting => setting !== null);
+            
+            console.log(completespacesettings);
+        this.response.template = 'domain_spaces_plugin.html';
+        this.response.body.current = this.domain;
+        this.response.body.settings = completespacesettings;
+
+
+    }
+    async post(args) {
+        console.log('DOMAIN_SPACE_PLUGIN_SETTINGS', SettingModel.DOMAIN_SPACE_PLUGIN_SETTINGS);
+        console.log('args', args);
+        
+        if (args.operation) return;
+        const $set = {};
+
+        for (const key in args) {
+            const setting = SettingModel.DOMAIN_SPACE_PLUGIN_SETTINGS.find(s => s.key === key);
+            if (setting) {
+                $set[key] = args[key];
+            }
+        }
+
+        console.log('$set', $set);
+        console.log('args.domainId', args.domainId);
+
+        await DomainModel.edit(args.domainId, $set);
+        this.response.redirect = this.url('domain_spaces_plugin');
+    }
+}
+
 
 
 export async function apply(ctx: Context) {
     global.Ejunz.ui.inject('DomainManage', 'domain_spaces_store', { family: 'spaces', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_spaces_permissions', { family: 'spaces', icon: 'book' });
     global.Ejunz.ui.inject('DomainManage', 'domain_spaces_config', { family: 'spaces', icon: 'book' });
+    global.Ejunz.ui.inject('DomainManage', 'domain_spaces_plugin', { family: 'spaces', icon: 'book' });
     global.Ejunz.ui.inject('NavDropdown', 'manage_spaces', { prefix: 'manage' }, PRIV.PRIV_EDIT_SYSTEM);
 
     ctx.Route('manage_spaces', '/manage/spaces', SystemSpaceHandler);
     ctx.Route('domain_spaces_permissions', '/domain/spaces/permissions', DomainSpacePermissionsHandler);
     ctx.Route('domain_spaces_config', '/domain/spaces/config', DomainSpaceConfigHandler);
     ctx.Route('domain_spaces_store', '/domain/spaces/store', DomainSpaceStoreHandler);
+    ctx.Route('domain_spaces_plugin', '/domain/spaces/plugin', DomainSpacePluginHandler);
 
     ctx.i18n.load('zh', {
         'spaces': '本域空间',
@@ -359,6 +457,7 @@ export async function apply(ctx: Context) {
         domain_spaces_permissions: '空间权限',
         domain_spaces_config: '空间配置',
         domain_spaces_store: '空间商店',
+        domain_spaces_plugin: '空间插件',
     });
 
     ctx.injectUI('Home_Domain', 'domain_spaces', (h) => ({
@@ -367,7 +466,7 @@ export async function apply(ctx: Context) {
         uid: h.domain._id.toString()
         
     }));
-
+    
     ctx.injectUI('ControlPanel', 'manage_spaces', (h) => ({}));
 
     ctx.on('handler/before/SystemSpace#post', (h) => {
@@ -419,7 +518,7 @@ export async function apply(ctx: Context) {
     });
 
     ctx.on('handler/before/DomainSpaceStore#post', async (h) => {
-        const domainspaces = SettingModel.DOMAIN_SPACE_SETTINGS.filter(s => s.family === 'setting_domain_on_spaces');
+        const domainspaces = SettingModel.DOMAIN_SPACE_CONFIG_SETTINGS.filter(s => s.family === 'setting_domain_on_spaces');
         for (const s of domainspaces) {
             const before = await DomainModel.get(h.domain._id);
             const beforespaces = before?.spaces;
@@ -436,7 +535,7 @@ export async function apply(ctx: Context) {
     });
 
     ctx.on('handler/after/DomainSpaceStore#post', async (h) => {
-        const domainspaces = SettingModel.DOMAIN_SPACE_SETTINGS.filter(s => s.family === 'setting_domain_on_spaces');
+        const domainspaces = SettingModel.DOMAIN_SPACE_CONFIG_SETTINGS.filter(s => s.family === 'setting_domain_on_spaces');
         for (const s of domainspaces) {
         const after = await DomainModel.get(h.domain._id);
         const afterspaces = after?.spaces;
@@ -477,5 +576,81 @@ export async function apply(ctx: Context) {
     });
 
 
+    const customchecker = (handler) => {
+        return () => true;
+    }
+//TODO: 通配所有spaceConfig
+    ctx.on('handler/after', (h) => {
+        const filspacePluginConfig = h.domain.filespace_plugin;
+        console.log('filspacePluginConfig', filspacePluginConfig);
+        
+        const FilespacePluginsConfig = yaml.load(filspacePluginConfig) as any; 
+        console.log('FilespacePluginsConfig', FilespacePluginsConfig);
+        
+        const filespacePaths = FilespacePluginsConfig.filespace.map(item => item.path);
+        const overrideNav = FilespacePluginsConfig.filespace.map(item => ({
+            name: item.name, 
+            args: {}, 
+            checker: ()=> true 
+        }));
+    
+        console.log('filespacePaths', filespacePaths);
+        console.log('overrideNav', overrideNav);
+
+        if (filespacePaths.some(path => h.request.path.includes(path))) {
+
+        if (!h.response.body.overrideNav) {
+            h.response.body.overrideNav = []; 
+        }
+            h.UiContext.spacename = 'filespace';
+            h.response.body.overrideNav.push(...overrideNav); 
+        }
+        console.log('h.response.body.overrideNav', h.response.body.overrideNav);
+    });
+   
+    ctx.on('handler/after', (h) => {
+        const spaceName = h.domain.spaces;
+        const spaceNameArray = yaml.load(spaceName) as string[];
+        for (const space of spaceNameArray) {
+            console.log('space', space);
+        }
+    });
+
+    // ctx.on('handler/after', (h) => {
+    //     const spaceName = h.domain.spaces;
+    //     const spaceNameArray = yaml.load(spaceName) as string[];
+    //     for (const space of spaceNameArray) {
+    //         console.log('space', space);
+    //         const XPluginsConfig = h.domain[`${space}_plugin`];
+    //         console.log('XPluginsConfig', XPluginsConfig);
+    //         const XPlugins = yaml.load(XPluginsConfig) as string[];
+    //         console.log('XPlugins', XPlugins);
+    //         for (const plugin of XPlugins) {
+    //             const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+    //             const T = D.filter(s => s.key.includes('plugin_context_config'));
+    //             const yamlString = yaml.dump(T);
+    //             const pluginConfig = yaml.load(yamlString) as any;
+    //             for (const config of pluginConfig) {
+    //                 const value = config.value; // 获取 value 字段
+    //                 const parsedValue = yaml.load(value); // 解析 YAML 字符串
+                
+    //                 if (Array.isArray(parsedValue)) {
+    //                     for (const item of parsedValue) {
+    //                         console.log(`${plugin} route:`, item.route); 
+    //                         console.log(`${plugin} entry:`, item.entry);
+
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+    //     }
+        
+
+    // }
+    // );
+
+
+   
 }
 

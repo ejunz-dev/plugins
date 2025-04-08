@@ -146,7 +146,7 @@ export class ProcessingHandler extends ProcessingBaseHandler {
     }
 
     async get({ domainId }) {
-        const processingConfig = this.domain.processing;
+        const processingConfig = this.domain.processing_config;
         console.log('processingConfig', processingConfig);
 
         // 检查 processingConfig 是否为 undefined
@@ -223,11 +223,11 @@ export async function apply(ctx: Context) {
     ctx.Route('processing_main', '/processing', ProcessingHandler);
     
 
-    SettingModel.DomainSpaceSetting(
+    SettingModel.DomainSpaceConfigSetting(
         SettingModel.Setting
         (   
             'spaces', 
-            'processing', 
+            'processing_config', 
             [], 
             'yaml', 
             'processing_front'

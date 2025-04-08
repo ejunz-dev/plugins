@@ -143,7 +143,7 @@ export class FilespaceHandler extends FilespaceBaseHandler {
     }
 
     async get({ domainId }) {
-        const filespaceConfig = this.domain.filespace;
+        const filespaceConfig = this.domain.filespace_config;
 
         if (!filespaceConfig) {
             this.response.body = {
@@ -217,16 +217,26 @@ export async function apply(ctx: Context) {
     );
     
     ctx.Route('filespace_main', '/filespace', FilespaceHandler,PERM.PERM_VIEW_FILESPACE);
-    
-
-    SettingModel.DomainSpaceSetting(
+    SettingModel.DomainSpaceConfigSetting(
         SettingModel.Setting
         (   
             'spaces', 
-            'filespace', 
+            'filespace_config', 
             [], 
             'yaml', 
             'filespace_front'
         ),
     );
+    SettingModel.DomainSpacePluginSetting(
+        SettingModel.Setting
+        (   
+            'spaces', 
+            'filespace_plugin', 
+            [], 
+            'yaml',
+            'filespace_plugins'
+        ),
+    );
+
+
 }
