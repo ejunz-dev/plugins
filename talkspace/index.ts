@@ -234,12 +234,37 @@ export async function apply(ctx: Context) {
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
         if (availableSpaces.has('talkspace')) {
+            console.log('Talkspace Domain pass');
             return true;
         }
+        console.log('Talkspace Domain fail');
         return false;
     }
 
-   ctx.injectUI('NavMainDropdown', 'talkspace_main', { prefix: 'talkspace' }, CheckSpaceStore);
+    const CheckSystemConfig = (h) => {
+        const systemspaces = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_spaces');
+        for (const s of systemspaces) {
+            if (s.name == 'talkspace') {
+                const beforeSystemSpace = SystemModel.get(s.key);
+                const parsedBeforeSystemSpace = yaml.load(beforeSystemSpace) as any[];
+                console.log('Talkspace SystemConfig', parsedBeforeSystemSpace);
+                if (parsedBeforeSystemSpace.includes(h.domain._id)) {
+                    console.log('Talkspace SystemConfig pass');
+                    return true;
+                }else{
+                    console.log('Talkspace SystemConfig fail');
+                    return false;
+                }
+            }
+        }
+       
+    }
+
+    const CheckAll = (h) => {
+        return CheckSpaceStore(h) && CheckSystemConfig(h);
+    }
+
+   ctx.injectUI('NavMainDropdown', 'talkspace_main', { prefix: 'talkspace' }, CheckAll);
 
 
 }

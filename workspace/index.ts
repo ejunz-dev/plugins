@@ -234,11 +234,37 @@ export async function apply(ctx: Context) {
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
         if (availableSpaces.has('workspace')) {
+            console.log('Workspace Domain pass');
             return true;
         }
+        console.log('Workspace Domain fail');
         return false;
     }
 
-   ctx.injectUI('NavMainDropdown', 'workspace_main', { prefix: 'workspace' }, CheckSpaceStore);
+    const CheckSystemConfig = (h) => {
+        const systemspaces = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_spaces');
+        for (const s of systemspaces) {
+            if (s.name == 'workspace') {
+                const beforeSystemSpace = SystemModel.get(s.key);
+                const parsedBeforeSystemSpace = yaml.load(beforeSystemSpace) as any[];
+                console.log('Workspace SystemConfig', parsedBeforeSystemSpace);
+                if (parsedBeforeSystemSpace.includes(h.domain._id)) {
+                    console.log('Workspace SystemConfig pass');
+                    return true;
+                }else{
+                    console.log('Workspace SystemConfig fail');
+                    return false;
+                }
+            }
+        }
+       
+    }
+
+    const CheckAll = (h) => {
+        return CheckSpaceStore(h) && CheckSystemConfig(h);
+    }
+
+
+   ctx.injectUI('NavMainDropdown', 'workspace_main', { prefix: 'workspace' }, CheckAll);
 
 }

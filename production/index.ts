@@ -234,11 +234,37 @@ export async function apply(ctx: Context) {
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
         if (availableSpaces.has('production')) {
+            console.log('Production Domain pass');
             return true;
         }
+        console.log('Production Domain fail');
         return false;
     }
 
-   ctx.injectUI('NavMainDropdown', 'production_main', { prefix: 'production' }, CheckSpaceStore);
+    const CheckSystemConfig = (h) => {
+        const systemspaces = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_spaces');
+        for (const s of systemspaces) {
+            if (s.name == 'production') {
+                const beforeSystemSpace = SystemModel.get(s.key);
+                const parsedBeforeSystemSpace = yaml.load(beforeSystemSpace) as any[];
+                console.log('Production SystemConfig', parsedBeforeSystemSpace);
+                if (parsedBeforeSystemSpace.includes(h.domain._id)) {
+                    console.log('Production SystemConfig pass');
+                    return true;
+                }else{
+                    console.log('Production SystemConfig fail');
+                    return false;
+                }
+            }
+        }
+       
+    }
+
+    const CheckAll = (h) => {
+        return CheckSpaceStore(h) && CheckSystemConfig(h);
+    }
+
+
+   ctx.injectUI('NavMainDropdown', 'production_main', { prefix: 'production' }, CheckAll);
 
 }
