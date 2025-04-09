@@ -231,5 +231,14 @@ export async function apply(ctx: Context) {
 
     ctx.Route('workspace_main', '/workspace', WorkspaceHandler);
 
+    const CheckSpaceStore = (h) => {
+        const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+        if (availableSpaces.has('workspace')) {
+            return true;
+        }
+        return false;
+    }
+
+   ctx.injectUI('NavMainDropdown', 'workspace_main', { prefix: 'workspace' }, CheckSpaceStore);
 
 }

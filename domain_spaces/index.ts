@@ -578,11 +578,11 @@ export async function apply(ctx: Context) {
     });
 
 
+    // watch domain.spaces.plugins
     ctx.on('handler/after', (h) => {
         // TODO 添加system限制检查
         const availableSpaces = h.domain.spaces;
         let availableSpacesArray: string[] = [];
-
         try {
             const parsedSpaces = yaml.load(availableSpaces);
             if (Array.isArray(parsedSpaces)) {
@@ -593,22 +593,15 @@ export async function apply(ctx: Context) {
         } catch (error) {
             console.error('Error parsing availableSpaces:', error);
         }
-
-        // 如果 availableSpacesArray 为空，则将 'homepage' 加入其中
         if (availableSpacesArray.length === 0) {
             availableSpacesArray.push('homepage');
         }
-
-        console.log('availableSpacesArray', availableSpacesArray);
-
         for (const space of availableSpacesArray) {
             const spaceConfig = h.domain[`${space}_plugin`];
-        
             if (!spaceConfig) {
                 console.warn(`spaceConfig for ${space} is undefined`);
                 continue;
             }
-
             let spacePluginConfig;
             try {
                 spacePluginConfig = yaml.load(spaceConfig) as any;
@@ -616,89 +609,159 @@ export async function apply(ctx: Context) {
                 console.error(`Failed to parse spaceConfig for ${space}:`, error);
                 continue;
             }
-
-            console.log('spacePluginConfig', spacePluginConfig);
-
             if (!spacePluginConfig || !spacePluginConfig[space]) {
                 console.warn(`spacePluginConfig or ${space} for ${space} is invalid`);
                 continue;
             }
-
             const pluginRoutes = spacePluginConfig[space].map((item: any) => item.route);
-            
             let spaceDefaultRoute = `/${space}`;
             if (space === 'homepage') {
                 spaceDefaultRoute = '/';
             }
-            console.log('spaceDefaultRoute', spaceDefaultRoute);
-
             pluginRoutes.push(spaceDefaultRoute);
-
             const overrideNav = spacePluginConfig[space].map((item: any) => ({
                 name: item.name,
                 args: {},
                 checker: () => true
             }));
-
-            console.log('pluginRoutes', pluginRoutes);
-            console.log('overrideNav', overrideNav);
-
             if (pluginRoutes.some(route => h.request.path.includes(route))) {
                 if (!h.response.body.overrideNav) {
                     h.response.body.overrideNav = [];
                 }
                 h.UiContext.spacename = spacePluginConfig[space].find((item: any) => h.request.path.includes(item.route))?.name || space;
-                console.log('h.UiContext.spacename', h.UiContext.spacename);
-
                 h.response.body.overrideNav.push(...overrideNav);
             }
         }
-        console.log('h.response.body.overrideNav', h.response.body.overrideNav);
     });
-   
-    // ctx.on('handler/after', (h) => {
-    //     const spaceName = h.domain.spaces;
-    //     const spaceNameArray = yaml.load(spaceName) as string[];
-    //     for (const space of spaceNameArray) {
-    //         console.log('space', space);
-    //     }
+
+
+    // // Inject NavMainDropdown
+    // ctx.on('handler/before/DomainSpaceStore', (h) => {
+    //     const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+    //     console.log('Before availableSpaces', Array.from(availableSpaces));
+    //     console.log('h', h);
+
+    //     // for (const space of availableSpaces) {
+    //     //     const customchecker = () => availableSpaces.has(space);
+    //     //     if (space === 'homepage') {
+    //     //         ctx.injectUI('NavMainDropdown', 'homepage', customchecker);
+    //     //         console.log('inject homepage');
+    //     //     } else {
+    //     //         ctx.injectUI('NavMainDropdown', `${space}_main`, customchecker);
+    //     //         console.log('inject', `${space}_main`);
+    //     //     }
+    //     // }
     // });
 
-    // ctx.on('handler/after', (h) => {
-    //     const spaceName = h.domain.spaces;
-    //     const spaceNameArray = yaml.load(spaceName) as string[];
-    //     for (const space of spaceNameArray) {
-    //         console.log('space', space);
-    //         const XPluginsConfig = h.domain[`${space}_plugin`];
-    //         console.log('XPluginsConfig', XPluginsConfig);
-    //         const XPlugins = yaml.load(XPluginsConfig) as string[];
-    //         console.log('XPlugins', XPlugins);
-    //         for (const plugin of XPlugins) {
-    //             const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
-    //             const T = D.filter(s => s.key.includes('plugin_context_config'));
-    //             const yamlString = yaml.dump(T);
-    //             const pluginConfig = yaml.load(yamlString) as any;
-    //             for (const config of pluginConfig) {
-    //                 const value = config.value; // 获取 value 字段
-    //                 const parsedValue = yaml.load(value); // 解析 YAML 字符串
-                
-    //                 if (Array.isArray(parsedValue)) {
-    //                     for (const item of parsedValue) {
-    //                         console.log(`${plugin} route:`, item.route); 
-    //                         console.log(`${plugin} entry:`, item.entry);
+    // ctx.on('handler/after/DomainSpaceStore#post', (h) => {
+    //     const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+    //     console.log('After availableSpaces', Array.from(availableSpaces));
 
-    //                     }
-    //                 }
+    //     // 初始化或获取已注入的空间状态
+    //     h.injectedSpaces = h.injectedSpaces || new Set<string>();
+    //     console.log('injectedSpaces before', Array.from(h.injectedSpaces));
+
+    //     for (const space of availableSpaces) {
+    //         const customchecker = () => {
+    //             // 检查当前空间是否在 availableSpaces 中
+    //             const isInAvailableSpaces = availableSpaces.has(space);
+    //             // 检查当前空间是否已经注入
+    //             const isAlreadyInjected = h.injectedSpaces.has(space);
+
+    //             // 如果空间在 availableSpaces 中且未注入，则注入
+    //             if (isInAvailableSpaces && !isAlreadyInjected) {
+    //                 console.log('inject', space);
+    //                 h.injectedSpaces.add(space);
+    //                 return true;
     //             }
+
+    //             // 如果空间不在 availableSpaces 中且已注入，则移除
+    //             if (!isInAvailableSpaces && isAlreadyInjected) {
+    //                 console.log('remove', space);
+    //                 h.injectedSpaces.delete(space);
+    //                 return false;
+    //             }
+
+    //             // 否则，保持当前状态
+    //             console.log('keep', space);
+    //             return isInAvailableSpaces;
+    //         };
+
+    //         if (space === 'homepage') {
+    //             ctx.injectUI('NavMainDropdown', 'homepage', customchecker);
+    //             console.log('inject homepage');
+    //         } else {
+    //             ctx.injectUI('NavMainDropdown', `${space}_main`, customchecker);
+    //             console.log('inject', `${space}_main`);
     //         }
-
     //     }
-        
+    //     console.log('injectedSpaces after', Array.from(h.injectedSpaces));
+    // });
 
+    // const customchecker = (h) => {
+    //     const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+    //     return availableSpaces.has(h.space);
     // }
-    // );
+    // const removeFunctions = new Map<string, () => void>();
 
 
-   
+    // ctx.on('handler/after', (h) => {
+    //     const customchecker = (h) => {
+    //         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+    //         return availableSpaces.has(h.space);
+    //     }
+
+
+  
+    //     });
+
+    // //     ctx.on('handler/before/DomainSpaceStore#post', async (h) => {
+    //         // 解析并存储初始状态
+    //         const availableSpaces = h.domain.spaces;
+    //         const parsedAvailableSpaces = yaml.load(availableSpaces) as string[];
+    //         console.log('Before availableSpaces', parsedAvailableSpaces);
+        
+    //         // 存储初始状态
+    //         h.initialSpaces = parsedAvailableSpaces;
+    //     });
+        
+    //     ctx.on('handler/after/DomainSpaceStore#post', async (h) => {
+    // // 获取并解析新的状态
+    // const domain = await DomainModel.get(h.domain._id);
+    // const availableSpaces = domain?.spaces;
+    // const parsedAvailableSpaces = yaml.load(availableSpaces) as string[];
+    // console.log('After availableSpaces', parsedAvailableSpaces);
+
+    // // 比较初始状态和新的状态
+    // const addedSpaces = _.difference(parsedAvailableSpaces, h.initialSpaces);
+    // const removedSpaces = _.difference(h.initialSpaces, parsedAvailableSpaces);
+
+    // // 处理新增的空间
+    // if (addedSpaces.length > 0) {
+    //     console.log('Added spaces:', addedSpaces);
+    //     for (const space of addedSpaces) {
+    //         const remove = ctx.injectUI('NavMainDropdown', `${space}_main`, () => parsedAvailableSpaces.includes(space));
+    //         removeFunctions.set(space, remove);
+    //     }
+    // }
+
+    // // 处理移除的空间
+    // if (removedSpaces.length > 0) {
+    //     console.log('Removed spaces:', removedSpaces);
+    //     for (const space of removedSpaces) {
+    //         console.log('remove', space);
+    //         // 调用注销函数
+    //         const remove = removeFunctions.get(space);
+    //         if (remove) {
+    //             remove();
+    //             removeFunctions.delete(space);
+    //         }
+    //     }
+    // }
+    //     });
+
+
+
 }
+
 

@@ -231,5 +231,14 @@ export async function apply(ctx: Context) {
 
     ctx.Route('production_main', '/production', ProductionHandler);
 
+    const CheckSpaceStore = (h) => {
+        const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+        if (availableSpaces.has('production')) {
+            return true;
+        }
+        return false;
+    }
+
+   ctx.injectUI('NavMainDropdown', 'production_main', { prefix: 'production' }, CheckSpaceStore);
 
 }

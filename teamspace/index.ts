@@ -231,5 +231,14 @@ export async function apply(ctx: Context) {
 
     ctx.Route('teamspace_main', '/teamspace', TeamspaceHandler);
 
+    const CheckSpaceStore = (h) => {
+        const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+        if (availableSpaces.has('teamspace')) {
+            return true;
+        }
+        return false;
+    }
+
+   ctx.injectUI('NavMainDropdown', 'teamspace_main', { prefix: 'teamspace' }, CheckSpaceStore);
 
 }

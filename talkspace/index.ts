@@ -231,5 +231,15 @@ export async function apply(ctx: Context) {
 
     ctx.Route('talkspace_main', '/talkspace', TalkspaceHandler);
 
+    const CheckSpaceStore = (h) => {
+        const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+        if (availableSpaces.has('talkspace')) {
+            return true;
+        }
+        return false;
+    }
+
+   ctx.injectUI('NavMainDropdown', 'talkspace_main', { prefix: 'talkspace' }, CheckSpaceStore);
+
 
 }

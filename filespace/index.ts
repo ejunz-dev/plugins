@@ -206,7 +206,6 @@ export async function apply(ctx: Context) {
         PERM_VIEW_FILESPACE: 1n << 78n,
     };
 
-   ctx.injectUI('NavMainDropdown', 'filespace_main', { prefix: 'filespace' }, PERM.PERM_VIEW_FILESPACE);
 
     global.Ejunz.model.builtin.registerSpacePermission(
         'spaces',
@@ -237,6 +236,15 @@ export async function apply(ctx: Context) {
             'filespace_plugins'
         ),
     );
+    const CheckSpaceStore = (h) => {
+        const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
+        if (availableSpaces.has('filespace')) {
+            return true;
+        }
+        return false;
+    }
+
+   ctx.injectUI('NavMainDropdown', 'filespace_main', { prefix: 'filespace' }, CheckSpaceStore);
 
 
 }
