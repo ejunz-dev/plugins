@@ -208,7 +208,7 @@ class DomainSpacePermissionsHandler extends ManageHandler {
 
 class DomainSpaceConfigHandler extends ManageHandler {
     async get({ domainId }) {
-        const spacename = yaml.load(this.domain.spaces) as string[];
+        let spacename = yaml.load(this.domain.spaces) as string[];
         const spacenameColumnsections: { [key: string]: string[] } = {};
         const defaultColumnsections: string[] = [];
 
@@ -217,8 +217,10 @@ class DomainSpaceConfigHandler extends ManageHandler {
             spacename = [];
         }
         for (const s of spacename) {
-            const spacePath = `/root/Dev/ejunz/plugins/${s}/templates`;
-            //TODO dynamic import path
+            const spacePluginPath = `/root/Dev/ejunz/plugins/${s}/templates`;
+            const spaceAddonPath = `/root/Dev/ejunz/packages/${s}/templates`;
+
+            const spacePath = fs.existsSync(spacePluginPath) ? spacePluginPath : spaceAddonPath;
 
             const spacefiles = fs.readdirSync(spacePath).filter(file => 
                 !file.includes('space') && !file.endsWith('_main.html')
@@ -579,11 +581,29 @@ export async function apply(ctx: Context) {
     ctx.on('handler/after', (h) => {
         // TODO 添加system限制检查
         const availableSpaces = h.domain.spaces;
-        const availableSpacesArray = yaml.load(availableSpaces) as string[];
+        let availableSpacesArray: string[] = [];
+
+        try {
+            const parsedSpaces = yaml.load(availableSpaces);
+            if (Array.isArray(parsedSpaces)) {
+                availableSpacesArray = parsedSpaces;
+            } else {
+                console.warn('Parsed availableSpaces is not an array, using empty array.');
+            }
+        } catch (error) {
+            console.error('Error parsing availableSpaces:', error);
+        }
+
+        // 如果 availableSpacesArray 为空，则将 'homepage' 加入其中
+        if (availableSpacesArray.length === 0) {
+            availableSpacesArray.push('homepage');
+        }
+
         console.log('availableSpacesArray', availableSpacesArray);
+
         for (const space of availableSpacesArray) {
             const spaceConfig = h.domain[`${space}_plugin`];
-
+        
             if (!spaceConfig) {
                 console.warn(`spaceConfig for ${space} is undefined`);
                 continue;
@@ -606,7 +626,10 @@ export async function apply(ctx: Context) {
 
             const pluginRoutes = spacePluginConfig[space].map((item: any) => item.route);
             
-            const spaceDefaultRoute = `/${space}`;
+            let spaceDefaultRoute = `/${space}`;
+            if (space === 'homepage') {
+                spaceDefaultRoute = '/';
+            }
             console.log('spaceDefaultRoute', spaceDefaultRoute);
 
             pluginRoutes.push(spaceDefaultRoute);
@@ -633,13 +656,13 @@ export async function apply(ctx: Context) {
         console.log('h.response.body.overrideNav', h.response.body.overrideNav);
     });
    
-    ctx.on('handler/after', (h) => {
-        const spaceName = h.domain.spaces;
-        const spaceNameArray = yaml.load(spaceName) as string[];
-        for (const space of spaceNameArray) {
-            console.log('space', space);
-        }
-    });
+    // ctx.on('handler/after', (h) => {
+    //     const spaceName = h.domain.spaces;
+    //     const spaceNameArray = yaml.load(spaceName) as string[];
+    //     for (const space of spaceNameArray) {
+    //         console.log('space', space);
+    //     }
+    // });
 
     // ctx.on('handler/after', (h) => {
     //     const spaceName = h.domain.spaces;
