@@ -15,6 +15,9 @@ import { log2 } from 'ejun'
 import yaml from 'js-yaml';
 import _ from 'lodash';
 import fs from 'fs';
+import { getAddons } from 'ejun';
+import { loadedPlugins } from 'ejun';
+import path from 'path';
 
 interface ResultItem {
     name: string;
@@ -217,16 +220,36 @@ class DomainSpaceConfigHandler extends ManageHandler {
             spacename = [];
         }
         for (const s of spacename) {
-            const spacePluginPath = `/root/Dev/ejunz/plugins/${s}/templates`;
-            const spaceAddonPath = `/root/Dev/ejunz/packages/${s}/templates`;
-
-            const spacePath = fs.existsSync(spacePluginPath) ? spacePluginPath : spaceAddonPath;
-
-            const spacefiles = fs.readdirSync(spacePath).filter(file => 
-                !file.includes('space') && !file.endsWith('_main.html')
-            ).map(file => file.replace(/\.html$/, ''));
+            console.log('loadedPlugins', loadedPlugins);
+            const matchingPlugins = loadedPlugins.filter(plugin => {
+                const pluginName = path.basename(plugin.name).toLowerCase();
+                return pluginName === s.toLowerCase();
+              });
+              console.log('matchingPlugins', matchingPlugins);
+              if (matchingPlugins.length > 0) {
+                for (const plugin of matchingPlugins) {
+                    const pluginPath = path.join(plugin.name, 'templates');
+                    console.log('pluginPath', pluginPath);
+                    
+                    const spacefiles = fs.readdirSync(pluginPath).filter(file => 
+                        !file.includes('space') && !file.endsWith('_main.html')
+                    ).map(file => file.replace(/\.html$/, ''));
+                    
+                    spacenameColumnsections[s] = spacefiles;
+                }
+              }
+              console.log('spacenameColumnsections', spacenameColumnsections);
             
-            spacenameColumnsections[s] = spacefiles;
+            // const spacePluginPath = `/root/Dev/ejunz/plugins/${s}/templates`;
+            // const spaceAddonPath = `/root/Dev/ejunz/packages/${s}/templates`;
+
+            // const spacePath = fs.existsSync(spacePluginPath) ? spacePluginPath : spaceAddonPath;
+
+            // const spacefiles = fs.readdirSync(pluginPath).filter(file => 
+            //     !file.includes('space') && !file.endsWith('_main.html')
+            // ).map(file => file.replace(/\.html$/, ''));
+            
+            // spacenameColumnsections[s] = spacefiles;
             
         }
         const defaultPath = `/root/Dev/ejunz/packages/ui-default/templates/partials/default`;
@@ -290,6 +313,7 @@ class DomainSpaceConfigHandler extends ManageHandler {
         this.response.body.settings = completespacesettings;
         this.response.body.spacenameColumnsections = spacenameColumnsections;
         this.response.body.defaultColumnsections = defaultColumnsections;
+        console.log('this.response.body.completespacesettings', this.response.body.completespacesettings);
 
     }
     async post(args) {
@@ -577,6 +601,13 @@ export async function apply(ctx: Context) {
 
     });
 
+    const domainSettingpath = ['/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions'];
+    ctx.on('handler/after', async (that) => {
+        if (domainSettingpath.includes(that.request.path)) {
+            that.UiContext.spacename = 'domain_dashboard';
+        }
+    });
+
 
     // watch domain.spaces.plugins
     ctx.on('handler/after', (h) => {
@@ -605,6 +636,7 @@ export async function apply(ctx: Context) {
             let spacePluginConfig;
             try {
                 spacePluginConfig = yaml.load(spaceConfig) as any;
+                console.log('spacePluginConfig', spacePluginConfig);
             } catch (error) {
                 console.error(`Failed to parse spaceConfig for ${space}:`, error);
                 continue;
@@ -619,11 +651,13 @@ export async function apply(ctx: Context) {
                 spaceDefaultRoute = '/';
             }
             pluginRoutes.push(spaceDefaultRoute);
+            console.log('spacePluginConfig[space]', spacePluginConfig[space]);
             const overrideNav = spacePluginConfig[space].map((item: any) => ({
                 name: item.name,
                 args: {},
                 checker: () => true
             }));
+            console.log('pluginRoutes', pluginRoutes);
             if (pluginRoutes.some(route => h.request.path.includes(route))) {
                 if (!h.response.body.overrideNav) {
                     h.response.body.overrideNav = [];
@@ -632,6 +666,7 @@ export async function apply(ctx: Context) {
                 h.response.body.overrideNav.push(...overrideNav);
             }
         }
+        console.log('h.response.body.overrideNav', h.response.body.overrideNav);
     });
 
 
