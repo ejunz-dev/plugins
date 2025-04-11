@@ -227,9 +227,11 @@ export async function apply(ctx: Context) {
 
 
     // DEBUG: TypeError: Cannot read properties of undefined (reading 'push')
-    // ctx.i18n.load('zh', {
-    //     'a001home_main': 'CS之家',
-    // });
+    ctx.i18n.load('zh', {
+        'a001reserve_main': 'CS预定',
+        'a001home': 'Jacka小队主页',
+
+    });
 
    
 
@@ -267,10 +269,6 @@ export async function apply(ctx: Context) {
     }
 
    ctx.injectUI('NavMainDropdown', 'a001reserve_main', { prefix: 'a001reserve' }, CheckAll);
-
-   ctx.i18n.load('zh', {
-    'a001reserve_main': 'CS开黑',
-});
 
 
 }

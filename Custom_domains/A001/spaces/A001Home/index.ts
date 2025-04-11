@@ -227,9 +227,9 @@ export async function apply(ctx: Context) {
 
 
     // DEBUG: TypeError: Cannot read properties of undefined (reading 'push')
-    // ctx.i18n.load('zh', {
-    //     'a001home_main': 'CS之家',
-    // });
+    ctx.i18n.load('zh', {
+        'a001home_main': 'CS老家',
+    });
 
    
 
@@ -268,7 +268,5 @@ export async function apply(ctx: Context) {
 
    ctx.injectUI('NavMainDropdown', 'a001home_main', { prefix: 'a001home' }, CheckAll);
 
-   ctx.i18n.load('zh', {
-    'a001home_main': 'CS之家',
-});
+
 }
