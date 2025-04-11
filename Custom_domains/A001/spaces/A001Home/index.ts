@@ -199,7 +199,6 @@ export class A001HomeHandler extends A001HomeBaseHandler {
 
 }    
 
-
 export async function apply(ctx: Context) {
 
     SettingModel.DomainSpaceConfigSetting(
@@ -264,5 +263,13 @@ export async function apply(ctx: Context) {
     }
 
    ctx.injectUI('NavMainDropdown', 'a001home_main', { prefix: 'a001home' }, CheckAll);
+
+   ctx.on('handler/after/Home#get', async (that) => {
+    
+        if (that.domain._id === 'A001') {
+            that.response.redirect = that.url('a001home_main');
+        }
+    
+});
 
 }
