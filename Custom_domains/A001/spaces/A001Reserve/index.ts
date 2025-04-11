@@ -226,15 +226,6 @@ export async function apply(ctx: Context) {
     ctx.Route('a001reserve_main', '/a001reserve', A001ReserveHandler);
 
 
-    // DEBUG: TypeError: Cannot read properties of undefined (reading 'push')
-    ctx.i18n.load('zh', {
-        'a001reserve_main': 'CS预定',
-        'a001home': 'Jacka小队主页',
-
-    });
-
-   
-
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
         if (availableSpaces.has('a001reserve')) {

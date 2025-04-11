@@ -608,9 +608,14 @@ export async function apply(ctx: Context) {
         }
     });
 
+    ctx.on('handler/after', async (h) => {
+        if (!h.response.body.overrideNav) {
+            h.response.body.overrideNav = [];
+        }
+    });
 
     // watch domain.spaces.plugins
-    ctx.on('handler/after', (h) => {
+    ctx.on('handler/finish', async (h) => {
         // TODO 添加system限制检查
         const availableSpaces = h.domain.spaces;
         let availableSpacesArray: string[] = [];
@@ -659,11 +664,12 @@ export async function apply(ctx: Context) {
             }));
             console.log('pluginRoutes', pluginRoutes);
             if (pluginRoutes.some(route => h.request.path.includes(route))) {
-                if (!h.response.body.overrideNav) {
-                    h.response.body.overrideNav = [];
-                }
                 h.UiContext.spacename = spacePluginConfig[space].find((item: any) => h.request.path.includes(item.route))?.name || space;
-                h.response.body.overrideNav.push(...overrideNav);
+                
+                h.response.body.overrideNav = [
+                    ...(h.response.body.overrideNav || []),
+                    ...overrideNav
+                ];
             }
         }
         console.log('h.response.body.overrideNav', h.response.body.overrideNav);

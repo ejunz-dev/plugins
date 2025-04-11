@@ -224,14 +224,12 @@ export async function apply(ctx: Context) {
     );
 
     ctx.Route('a001home_main', '/a001home', A001HomeHandler);
-
-
-    // DEBUG: TypeError: Cannot read properties of undefined (reading 'push')
     ctx.i18n.load('zh', {
-        'a001home_main': 'CS老家',
-    });
+        'a001home_main': 'CS之家',
+        'a001reserve_main': 'CS开黑',
+        'a001home': 'Jacka小队主页',
 
-   
+    });
 
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
@@ -267,6 +265,5 @@ export async function apply(ctx: Context) {
     }
 
    ctx.injectUI('NavMainDropdown', 'a001home_main', { prefix: 'a001home' }, CheckAll);
-
 
 }
