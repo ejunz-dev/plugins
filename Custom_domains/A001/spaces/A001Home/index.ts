@@ -268,5 +268,7 @@ export async function apply(ctx: Context) {
 
    ctx.injectUI('NavMainDropdown', 'a001home_main', { prefix: 'a001home' }, CheckAll);
 
-
+   ctx.i18n.load('zh', {
+    'a001home_main': 'CS之家',
+});
 }

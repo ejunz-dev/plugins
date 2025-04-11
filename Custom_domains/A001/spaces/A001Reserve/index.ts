@@ -268,5 +268,9 @@ export async function apply(ctx: Context) {
 
    ctx.injectUI('NavMainDropdown', 'a001reserve_main', { prefix: 'a001reserve' }, CheckAll);
 
+   ctx.i18n.load('zh', {
+    'a001reserve_main': 'CS开黑',
+});
+
 
 }
