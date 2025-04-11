@@ -602,9 +602,10 @@ export async function apply(ctx: Context) {
     });
 
     const domainSettingpath = ['/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions'];
-    ctx.on('handler/after', async (that) => {
-        if (domainSettingpath.includes(that.request.path)) {
-            that.UiContext.spacename = 'domain_dashboard';
+    ctx.on('handler/finish', async (h) => {
+        if (domainSettingpath.includes(h.request.path)) {
+            h.UiContext.spacename = 'domain_dashboard';
+            console.log('h.UiContext.spacename', h.UiContext.spacename);
         }
     });
 
@@ -615,7 +616,7 @@ export async function apply(ctx: Context) {
     });
 
     // watch domain.spaces.plugins
-    ctx.on('handler/finish', async (h) => {
+    ctx.on('handler/after', async (h) => {
         // TODO 添加system限制检查
         const availableSpaces = h.domain.spaces;
         let availableSpacesArray: string[] = [];
@@ -664,14 +665,17 @@ export async function apply(ctx: Context) {
             }));
             console.log('pluginRoutes', pluginRoutes);
             if (pluginRoutes.some(route => h.request.path.includes(route))) {
-                h.UiContext.spacename = spacePluginConfig[space].find((item: any) => h.request.path.includes(item.route))?.name || space;
-                
+                const matchedSpace = Object.keys(spacePluginConfig).find(spaceKey => {
+                    return spacePluginConfig[spaceKey].some((item: any) => h.request.path.includes(item.route));
+                });
+                h.UiContext.spacename = matchedSpace || space;
                 h.response.body.overrideNav = [
                     ...(h.response.body.overrideNav || []),
                     ...overrideNav
                 ];
             }
         }
+        console.log('h.UiContext.spacename', h.UiContext.spacename);
         console.log('h.response.body.overrideNav', h.response.body.overrideNav);
     });
 
