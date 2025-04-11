@@ -17,7 +17,7 @@ import yaml from 'js-yaml';
 import _ from 'lodash';
 
 
-export class A001HomeBaseHandler extends Handler {
+export class A001UtilsBaseHandler extends Handler {
     async after(domainId: string) {
         this.response.body.overrideNav = [
         ];
@@ -25,7 +25,7 @@ export class A001HomeBaseHandler extends Handler {
 }
 
 
-export class A001HomeHandler extends A001HomeBaseHandler {
+export class A001UtilsHandler extends A001UtilsBaseHandler {
     uids = new Set<number>();
 
     collectUser(uids: number[]) {
@@ -139,21 +139,21 @@ export class A001HomeHandler extends A001HomeBaseHandler {
     }
 
     async get({ domainId }) {
-        const a001homeConfig = this.domain.a001home_config;
-        console.log('a001homeConfig', a001homeConfig);
+        const a001utilsConfig = this.domain.a001utils_config;
+        console.log('a001utilsConfig', a001utilsConfig);
 
         // 检查 processingConfig 是否为 undefined
-        if (!a001homeConfig) {
+        if (!a001utilsConfig) {
             this.response.body = {
-                contents: [{ message: '需要进行配置 a001home' }],
+                contents: [{ message: '需要进行配置 a001utils' }],
                 udict: {},
                 domain: this.domain,
             };
             return;
         }
 
-        console.log('a001homeConfig', a001homeConfig);
-        const info = yaml.load(a001homeConfig) as any;
+        console.log('a001utilsConfig', a001utilsConfig);
+        const info = yaml.load(a001utilsConfig) as any;
         console.log('info', info);
         
         const contents = [];
@@ -188,7 +188,7 @@ export class A001HomeHandler extends A001HomeBaseHandler {
         }
     
         const udict = await UserModel.getList(domainId, Array.from(this.uids));
-        this.response.template = 'a001home_main.html';
+        this.response.template = 'a001utils_main.html';
         this.response.body = {
             contents,
             udict,
@@ -206,52 +206,54 @@ export async function apply(ctx: Context) {
         SettingModel.Setting
         (   
             'spaces', 
-            'a001home_config', 
+            'a001utils_config', 
             [], 
             'yaml', 
-            'a001home_front'
+            'a001utils_front'
         ),
     );
     SettingModel.DomainSpacePluginSetting(
         SettingModel.Setting
         (   
             'spaces', 
-            'a001home_plugin', 
+            'a001utils_plugin', 
             [], 
             'yaml',
-            'a001home_plugins'
+            'a001utils_plugins'
         ),
     );
 
-    ctx.Route('a001home_main', '/a001home', A001HomeHandler);
-    ctx.i18n.load('zh', {
-        'a001home_main': 'Jacka小队总频道',
-        'a001home': 'Jacka小队总频道',
+    ctx.Route('a001utils_main', '/a001utils', A001UtilsHandler);
 
+
+    ctx.i18n.load('zh', {
+        'a001utils_main': '道具频道',
+        'a001utils': '道具频道',
     });
+
 
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
-        if (availableSpaces.has('a001home')) {
-            console.log('A001Home Domain pass');
+        if (availableSpaces.has('a001utils')) {
+            console.log('A001Utils Domain pass');
             return true;
         }
-        console.log('A001Home Domain fail');
+        console.log('A001Utils Domain fail');
         return false;
     }
 
     const CheckSystemConfig = (h) => {
         const systemspaces = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_spaces');
         for (const s of systemspaces) {
-            if (s.name == 'a001home') {
+            if (s.name == 'a001utils') {
                 const beforeSystemSpace = SystemModel.get(s.key);
                 const parsedBeforeSystemSpace = yaml.load(beforeSystemSpace) as any[];
-                console.log('A001Home SystemConfig', parsedBeforeSystemSpace);
+                console.log('A001Utils SystemConfig', parsedBeforeSystemSpace);
                 if (parsedBeforeSystemSpace.includes(h.domain._id)) {
-                    console.log('A001Home SystemConfig pass');
+                    console.log('A001Utils SystemConfig pass');
                     return true;
                 }else{
-                    console.log('A001Home SystemConfig fail');
+                    console.log('A001Utils SystemConfig fail');
                     return false;
                 }
             }
@@ -263,6 +265,7 @@ export async function apply(ctx: Context) {
         return CheckSpaceStore(h) && CheckSystemConfig(h);
     }
 
-   ctx.injectUI('NavMainDropdown', 'a001home_main', { prefix: 'a001home' }, CheckAll);
+   ctx.injectUI('NavMainDropdown', 'a001utils_main', { prefix: 'a001utils' }, CheckAll);
+
 
 }

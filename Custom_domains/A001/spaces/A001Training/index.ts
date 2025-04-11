@@ -17,7 +17,7 @@ import yaml from 'js-yaml';
 import _ from 'lodash';
 
 
-export class A001ReserveBaseHandler extends Handler {
+export class A001TrainingBaseHandler extends Handler {
     async after(domainId: string) {
         this.response.body.overrideNav = [
         ];
@@ -25,7 +25,7 @@ export class A001ReserveBaseHandler extends Handler {
 }
 
 
-export class A001ReserveHandler extends A001ReserveBaseHandler {
+export class A001TrainingHandler extends A001TrainingBaseHandler {
     uids = new Set<number>();
 
     collectUser(uids: number[]) {
@@ -139,21 +139,21 @@ export class A001ReserveHandler extends A001ReserveBaseHandler {
     }
 
     async get({ domainId }) {
-        const a001reserveConfig = this.domain.a001reserve_config;
-        console.log('a001reserveConfig', a001reserveConfig);
+        const a001trainingConfig = this.domain.a001training_config;
+        console.log('a001trainingConfig', a001trainingConfig);
 
         // 检查 processingConfig 是否为 undefined
-        if (!a001reserveConfig) {
+        if (!a001trainingConfig) {
             this.response.body = {
-                contents: [{ message: '需要进行配置 a001reserve' }],
+                contents: [{ message: '需要进行配置 a001training' }],
                 udict: {},
                 domain: this.domain,
             };
             return;
         }
 
-        console.log('a001reserveConfig', a001reserveConfig);
-        const info = yaml.load(a001reserveConfig) as any;
+        console.log('a001trainingConfig', a001trainingConfig);
+        const info = yaml.load(a001trainingConfig) as any;
         console.log('info', info);
         
         const contents = [];
@@ -188,7 +188,7 @@ export class A001ReserveHandler extends A001ReserveBaseHandler {
         }
     
         const udict = await UserModel.getList(domainId, Array.from(this.uids));
-        this.response.template = 'a001reserve_main.html';
+        this.response.template = 'a001training_main.html';
         this.response.body = {
             contents,
             udict,
@@ -206,48 +206,52 @@ export async function apply(ctx: Context) {
         SettingModel.Setting
         (   
             'spaces', 
-            'a001reserve_config', 
+            'a001training_config', 
             [], 
             'yaml', 
-            'a001reserve_front'
+            'a001training_front'
         ),
     );
     SettingModel.DomainSpacePluginSetting(
         SettingModel.Setting
         (   
             'spaces', 
-            'a001reserve_plugin', 
+            'a001training_plugin', 
             [], 
             'yaml',
-            'a001reserve_plugins'
+            'a001training_plugins'
         ),
     );
 
-    ctx.Route('a001reserve_main', '/a001reserve', A001ReserveHandler);
+    ctx.Route('a001training_main', '/a001training', A001TrainingHandler);
+    ctx.i18n.load('zh', {
+        'a001training_main': '训练频道',
+        'a001training': '训练频道',
 
+    });
 
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
-        if (availableSpaces.has('a001reserve')) {
-            console.log('A001Reserve Domain pass');
+        if (availableSpaces.has('a001training')) {
+            console.log('A001Training Domain pass');
             return true;
         }
-        console.log('A001Reserve Domain fail');
+        console.log('A001Training Domain fail');
         return false;
     }
 
     const CheckSystemConfig = (h) => {
         const systemspaces = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_spaces');
         for (const s of systemspaces) {
-            if (s.name == 'a001reserve') {
+            if (s.name == 'a001training') {
                 const beforeSystemSpace = SystemModel.get(s.key);
                 const parsedBeforeSystemSpace = yaml.load(beforeSystemSpace) as any[];
-                console.log('A001Reserve SystemConfig', parsedBeforeSystemSpace);
+                console.log('A001Training SystemConfig', parsedBeforeSystemSpace);
                 if (parsedBeforeSystemSpace.includes(h.domain._id)) {
-                    console.log('A001Reserve SystemConfig pass');
+                    console.log('A001Training SystemConfig pass');
                     return true;
                 }else{
-                    console.log('A001Reserve SystemConfig fail');
+                    console.log('A001Training SystemConfig fail');
                     return false;
                 }
             }
@@ -259,7 +263,6 @@ export async function apply(ctx: Context) {
         return CheckSpaceStore(h) && CheckSystemConfig(h);
     }
 
-   ctx.injectUI('NavMainDropdown', 'a001reserve_main', { prefix: 'a001reserve' }, CheckAll);
-
+   ctx.injectUI('NavMainDropdown', 'a001training_main', { prefix: 'a001training' }, CheckAll);
 
 }

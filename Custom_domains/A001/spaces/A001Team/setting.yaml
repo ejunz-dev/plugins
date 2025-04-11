@@ -1,6 +1,6 @@
 spaces_allowed_domains:
   family: system_spaces
   type: yaml
-  name: a001reserve
+  name: a001team
   desc: Allowed domains
   default: [A001]
