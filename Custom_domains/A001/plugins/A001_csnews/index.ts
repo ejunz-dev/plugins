@@ -134,14 +134,7 @@ export async function apply(ctx: Context) {
     ctx.Route('csnews_api', '/api-csnews', A001CsnewApiHandler, CheckSpaceStore);
 
 
-    ctx.once('handler/after', async (that) => {
-        if (that.domain._id === 'A001') 
-            if (that.domain.csnews) {
-            SettingModel.DomainSetting(
-                SettingModel.Setting('setting_domain', 'csnews', '', 'markdown', 'CSNEWS'),
-            );
-        }
-    });
+   
 
     ctx.on('handler/after/A001CsnewApi#get', async (that) => {
         await DomainModel.edit('A001', { csnews: that.response.body.markdown });
