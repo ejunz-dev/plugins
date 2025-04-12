@@ -123,6 +123,10 @@ export async function apply(ctx: Context) {
     ctx.i18n.load('zh', {
         'CS_NEWS': 'CS新闻',
         'csnews_domain': 'CS新闻',
+        'Fetching CS News...': '正在获取CS新闻...',
+        'Reloading...': '正在刷新页面...',
+        'CS News updated successfully!': 'CS新闻更新成功!',
+        'Failed to update CS News.': '更新CS新闻失败。',
     });
 
 
