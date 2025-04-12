@@ -606,20 +606,12 @@ export async function apply(ctx: Context) {
         console.log('h.request.path', h.request.path);
         if (domainSettingpath.includes(h.request.path)) {
             h.UiContext.spacename = 'domain_dashboard';
-        }
-        if (h.request.path.startsWith('/manage/')) {
+        } else if (h.request.path.startsWith('/manage/')) {
             h.UiContext.spacename = 'manage_dashboard';
+        } else if (h.request.path === '/discuss' || h.request.path === ('/discuss/') || /^\/discuss\/[a-fA-F0-9]{24}$/.test(h.request.path)) {
+            h.UiContext.spacename = 'discussion';
         }
-        // if (h.request.path.startsWith('/discuss/node')) {
-        //     const pathParts = h.request.path.split('/');
-        //     const nodeIndex = pathParts.indexOf('node');
-        //     if (nodeIndex !== -1 && nodeIndex + 1 < pathParts.length) {
-        //         const encodedSpacename = pathParts[nodeIndex + 1];
-        //         h.UiContext.spacename = decodeURIComponent(encodedSpacename);
-        //     } else {
-        //         h.UiContext.spacename = 'discussion';
-        //     }
-        // }
+        console.log('h.UiContext.spacename', h.UiContext.spacename);
     });
 
     ctx.on('handler/after', async (h) => {
