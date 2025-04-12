@@ -606,12 +606,20 @@ export async function apply(ctx: Context) {
         console.log('h.request.path', h.request.path);
         if (domainSettingpath.includes(h.request.path)) {
             h.UiContext.spacename = 'domain_dashboard';
-            console.log('h.UiContext.spacename', h.UiContext.spacename);
         }
         if (h.request.path.startsWith('/manage/')) {
             h.UiContext.spacename = 'manage_dashboard';
-            console.log('h.UiContext.spacename', h.UiContext.spacename);
         }
+        // if (h.request.path.startsWith('/discuss/node')) {
+        //     const pathParts = h.request.path.split('/');
+        //     const nodeIndex = pathParts.indexOf('node');
+        //     if (nodeIndex !== -1 && nodeIndex + 1 < pathParts.length) {
+        //         const encodedSpacename = pathParts[nodeIndex + 1];
+        //         h.UiContext.spacename = decodeURIComponent(encodedSpacename);
+        //     } else {
+        //         h.UiContext.spacename = 'discussion';
+        //     }
+        // }
     });
 
     ctx.on('handler/after', async (h) => {
@@ -662,16 +670,16 @@ export async function apply(ctx: Context) {
                 spaceDefaultRoute = '/';
             }
             pluginRoutes.push(spaceDefaultRoute);
-            console.log('spacePluginConfig[space]', spacePluginConfig[space]);
             const overrideNav = spacePluginConfig[space].map((item: any) => ({
                 name: item.name,
-                args: {},
+                args: item.args || {},
+                displayName: item.displayName || '',
                 checker: () => true
             }));
-            console.log('pluginRoutes', pluginRoutes);
-            if (pluginRoutes.some(route => h.request.path.includes(route))) {
+            const decodedPath = decodeURIComponent(h.request.path);
+            if (pluginRoutes.some(route => decodedPath.includes(route))) {
                 const matchedSpace = Object.keys(spacePluginConfig).find(spaceKey => {
-                    return spacePluginConfig[spaceKey].some((item: any) => h.request.path.includes(item.route));
+                    return spacePluginConfig[spaceKey].some((item: any) => decodedPath.includes(item.route));
                 });
                 h.UiContext.spacename = matchedSpace || space;
                 h.response.body.overrideNav = [
@@ -680,8 +688,6 @@ export async function apply(ctx: Context) {
                 ];
             }
         }
-        console.log('h.UiContext.spacename', h.UiContext.spacename);
-        console.log('h.response.body.overrideNav', h.response.body.overrideNav);
     });
 
 

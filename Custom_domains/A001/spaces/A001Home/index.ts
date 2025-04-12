@@ -188,13 +188,14 @@ export class A001HomeHandler extends A001HomeBaseHandler {
         }
     
         const udict = await UserModel.getList(domainId, Array.from(this.uids));
+        const vnodes = await DiscussionModel.getNodes(domainId);
         this.response.template = 'a001home_main.html';
         this.response.body = {
             contents,
             udict,
             domain: this.domain,
+            vnodes,
         };
-        console.log('this.response.body.contents', this.response.body.contents);
     }
 
 }    

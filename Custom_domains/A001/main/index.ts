@@ -20,6 +20,9 @@ const DEFAULT_NODES = {
 
 
 export async function apply(ctx: Context) {
+    ctx.i18n.load('zh', {
+        "HLTV": "赛程",
+    });
 
     ctx.once('handler/after', async (that) => {
         if (that.domain._id === 'A001') 
