@@ -603,8 +603,13 @@ export async function apply(ctx: Context) {
 
     const domainSettingpath = ['/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions'];
     ctx.on('handler/finish', async (h) => {
+        console.log('h.request.path', h.request.path);
         if (domainSettingpath.includes(h.request.path)) {
             h.UiContext.spacename = 'domain_dashboard';
+            console.log('h.UiContext.spacename', h.UiContext.spacename);
+        }
+        if (h.request.path.startsWith('/manage/')) {
+            h.UiContext.spacename = 'manage_dashboard';
             console.log('h.UiContext.spacename', h.UiContext.spacename);
         }
     });
