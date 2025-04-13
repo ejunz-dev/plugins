@@ -17,7 +17,7 @@ import yaml from 'js-yaml';
 import _ from 'lodash';
 
 
-export class A001UtilsBaseHandler extends Handler {
+export class A001MapsBaseHandler extends Handler {
     async after(domainId: string) {
         this.response.body.overrideNav = [
         ];
@@ -25,7 +25,7 @@ export class A001UtilsBaseHandler extends Handler {
 }
 
 
-export class A001UtilsHandler extends A001UtilsBaseHandler {
+export class A001MapsHandler extends A001MapsBaseHandler {
     uids = new Set<number>();
 
     collectUser(uids: number[]) {
@@ -139,21 +139,21 @@ export class A001UtilsHandler extends A001UtilsBaseHandler {
     }
 
     async get({ domainId }) {
-        const a001utilsConfig = this.domain.a001utils_config;
-        console.log('a001utilsConfig', a001utilsConfig);
+        const a001mapsConfig = this.domain.a001maps_config;
+        console.log('a001mapsConfig', a001mapsConfig);
 
         // 检查 processingConfig 是否为 undefined
-        if (!a001utilsConfig) {
+        if (!a001mapsConfig) {
             this.response.body = {
-                contents: [{ message: '需要进行配置 a001utils' }],
+                contents: [{ message: '需要进行配置 a001maps' }],
                 udict: {},
                 domain: this.domain,
             };
             return;
         }
 
-        console.log('a001utilsConfig', a001utilsConfig);
-        const info = yaml.load(a001utilsConfig) as any;
+        console.log('a001mapsConfig', a001mapsConfig);
+        const info = yaml.load(a001mapsConfig) as any;
         console.log('info', info);
         
         const contents = [];
@@ -188,7 +188,7 @@ export class A001UtilsHandler extends A001UtilsBaseHandler {
         }
     
         const udict = await UserModel.getList(domainId, Array.from(this.uids));
-        this.response.template = 'a001utils_main.html';
+        this.response.template = 'a001maps_main.html';
         this.response.body = {
             contents,
             udict,
@@ -206,54 +206,48 @@ export async function apply(ctx: Context) {
         SettingModel.Setting
         (   
             'spaces', 
-            'a001utils_config', 
+            'a001maps_config', 
             [], 
             'yaml', 
-            'a001utils_front'
+            'a001maps_front'
         ),
     );
     SettingModel.DomainSpacePluginSetting(
         SettingModel.Setting
         (   
             'spaces', 
-            'a001utils_plugin', 
+            'a001maps_plugin', 
             [], 
             'yaml',
-            'a001utils_plugins'
+            'a001maps_plugins'
         ),
     );
 
-    ctx.Route('a001utils_main', '/a001utils', A001UtilsHandler);
-
-
-    ctx.i18n.load('zh', {
-        'a001utils_main': '道具频道',
-        'a001utils': '道具频道',
-    });
+    ctx.Route('a001maps_main', '/a001maps', A001MapsHandler);
 
 
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
-        if (availableSpaces.has('a001utils')) {
-            console.log('A001Utils Domain pass');
+        if (availableSpaces.has('a001maps')) {
+            console.log('A001Maps Domain pass');
             return true;
         }
-        console.log('A001Utils Domain fail');
+        console.log('A001Maps Domain fail');
         return false;
     }
 
     const CheckSystemConfig = (h) => {
         const systemspaces = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_spaces');
         for (const s of systemspaces) {
-            if (s.name == 'a001utils') {
+            if (s.name == 'a001maps') {
                 const beforeSystemSpace = SystemModel.get(s.key);
                 const parsedBeforeSystemSpace = yaml.load(beforeSystemSpace) as any[];
-                console.log('A001Utils SystemConfig', parsedBeforeSystemSpace);
+                console.log('A001Maps SystemConfig', parsedBeforeSystemSpace);
                 if (parsedBeforeSystemSpace.includes(h.domain._id)) {
-                    console.log('A001Utils SystemConfig pass');
+                    console.log('A001Maps SystemConfig pass');
                     return true;
                 }else{
-                    console.log('A001Utils SystemConfig fail');
+                    console.log('A001Maps SystemConfig fail');
                     return false;
                 }
             }
@@ -265,7 +259,7 @@ export async function apply(ctx: Context) {
         return CheckSpaceStore(h) && CheckSystemConfig(h);
     }
 
-   ctx.injectUI('NavMainDropdown', 'a001utils_main', { prefix: 'a001utils' }, CheckAll);
+   ctx.injectUI('NavMainDropdown', 'a001maps_main', { prefix: 'a001maps' }, CheckAll);
 
 
 }

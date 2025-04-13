@@ -224,11 +224,7 @@ export async function apply(ctx: Context) {
     );
 
     ctx.Route('a001home_main', '/a001home', A001HomeHandler);
-    ctx.i18n.load('zh', {
-        'a001home_main': 'Jacka小队总频道',
-        'a001home': 'Jacka小队总频道',
 
-    });
 
     const CheckSpaceStore = (h) => {
         const availableSpaces = new Set(yaml.load(h.domain.spaces) as string[]);
