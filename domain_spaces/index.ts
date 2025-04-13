@@ -15,7 +15,6 @@ import { log2 } from 'ejun'
 import yaml from 'js-yaml';
 import _ from 'lodash';
 import fs from 'fs';
-import { getAddons } from 'ejun';
 import { loadedPlugins } from 'ejun';
 import path from 'path';
 

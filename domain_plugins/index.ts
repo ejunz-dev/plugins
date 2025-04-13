@@ -15,7 +15,50 @@ import { log2 } from 'ejun'
 import { loadedPlugins } from 'ejun';
 import yaml from 'js-yaml';
 import _ from 'lodash';
+interface ResultItem {
+    name: string;
+    Systemallowed: any;
+}
 
+async function SystemChecker(domainId: string, pluginName: string) {
+    const SystemSettings = SettingModel.SYSTEM_SETTINGS.filter(s => 
+        s.family === 'system_plugins' && s.name === pluginName
+    );
+    const resultArray: ResultItem[] = [];
+
+    for (const s of SystemSettings) {
+        const name = s.name;
+        const SystemCurrentpluginsArray = await SystemModel.get(s.key);
+        const Current = yaml.load(SystemCurrentpluginsArray);
+        
+        const result: ResultItem = {
+            name: name,
+            Systemallowed: Current
+        };
+        resultArray.push(result);
+    }
+
+    const hasAccess = resultArray.some(item => item.Systemallowed.includes(domainId));
+    console.log(`Access for ${pluginName} in ${domainId} by SYSTEM`, hasAccess);
+    return hasAccess;
+}
+async function DomainChecker(DomainId: string, pluginName: string) {
+    const DomainCurrentplugins = await DomainModel.get(DomainId);
+    const plugins = DomainCurrentplugins?.plugins;
+
+    const hasAccess = plugins ? plugins.includes(pluginName) : false;
+    console.log(`Access for ${pluginName} in ${DomainId} by DOMAIN`, hasAccess);
+    return hasAccess;
+}
+
+async function checkAccess(domainId: string, pluginName: string) {
+    const hasSystemAccess = await SystemChecker(domainId, pluginName);
+    const hasDomainAccess = await DomainChecker(domainId, pluginName);
+
+    const hasAccess = hasSystemAccess && hasDomainAccess;
+    console.log(`Ultimate Access for ${pluginName} in domain ${domainId}:`, hasAccess);
+    return hasAccess;
+}
 
 function set(key: string, value: any) {
     if (SettingModel.SYSTEM_SETTINGS_BY_KEY[key]) {
@@ -93,60 +136,77 @@ class SystemPluginHandler extends SystemHandler {
 }
 
 class DomainPluginPermissionsHandler extends ManageHandler {
-   // @requireSudo
-    async get({ domainId }) {
-        const roles = await DomainModel.getRoles(domainId);
-        const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
-        const T = D.filter(s => s.key.includes('plugins_allowed_domains'));
-        const DomainBannedPlugins = {};
-        const BannedPlugins:string[] = [];
-        for (const s of T) {
-            const systemPluginsKey = SystemModel.get(s.key);
-            const systemPluginsName = s.name;
-            const systemPluginsMap = {}; 
-            systemPluginsMap[systemPluginsName] = systemPluginsKey;
-            if (!systemPluginsMap[systemPluginsName].includes(domainId)) {
-                const bannedPlugins = systemPluginsName;
-                BannedPlugins.push(bannedPlugins);
-            }
-        }
-        let NEW_PERMS_BY_FAMILY = { ...PERMS_BY_FAMILY };
-
-        if (BannedPlugins.length > 0) {
-            for (const bannedPlugin of BannedPlugins) {
-                for (const Type in NEW_PERMS_BY_FAMILY) {
-                    NEW_PERMS_BY_FAMILY[Type] = NEW_PERMS_BY_FAMILY[Type].filter(permission => permission.name !== bannedPlugin);
-                }
-            }
-        } else {
-            NEW_PERMS_BY_FAMILY = PERMS_BY_FAMILY;
-        }
-        this.response.template = 'domain_plugins_permissions.html';
-        this.response.body = {
-            roles,
-            NEW_PERMS_BY_FAMILY,
-            domain: this.domain,
-            log2,
-        };
-    }
-
     // @requireSudo
-    async post({ domainId }) {
-        const roles = {};
-        for (const role in this.request.body) {
-            const perms = this.request.body[role] instanceof Array
-                ? this.request.body[role]
-                : [this.request.body[role]];
-            roles[role] = 0n;
-            for (const r of perms) roles[role] |= 1n << BigInt(r);
-        }
-        await Promise.all([
-            DomainModel.setRoles(domainId, roles),
-            OplogModel.log(this, 'domain.setRoles', { roles }),
-        ]);
-        this.back();
-    }
-}
+     async get({ domainId }) {
+         const roles = await DomainModel.getRoles(domainId);
+         const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+         const T = D.filter(s => s.key.includes('plugins_allowed_domains'));
+       
+         const Bannedplugins: string[] = [];
+         const Allowedplugins: string[] = [];
+         for (const s of T) {
+             const systempluginsKey = await SystemModel.get(s.key);
+             const systempluginsName = s.name;
+             const systempluginsMap = {}; 
+             systempluginsMap[systempluginsName] = systempluginsKey;
+ 
+             if (!systempluginsMap[systempluginsName].includes(domainId)) {
+                 const bannedplugins = systempluginsName;
+                 Bannedplugins.push(bannedplugins);
+             } else {
+                 const allowedplugins = systempluginsName;
+                 Allowedplugins.push(allowedplugins);
+ 
+                 const hasAccess = await DomainChecker(domainId, allowedplugins);
+                 console.log('hasAccess',hasAccess);
+                 if (!hasAccess) {
+                     Bannedplugins.push(allowedplugins);
+                 }
+             }
+         }
+ 
+         let NEW_PERMS_BY_FAMILY = { ...PERMS_BY_FAMILY };
+ 
+         if (Bannedplugins.length > 0) {
+             for (const bannedplugin of Bannedplugins) {
+                 for (const Type in NEW_PERMS_BY_FAMILY) {
+                     NEW_PERMS_BY_FAMILY[Type] = NEW_PERMS_BY_FAMILY[Type].filter(permission => permission.name !== bannedplugin);
+                 }
+             }
+         } else {
+             NEW_PERMS_BY_FAMILY = PERMS_BY_FAMILY;
+         }
+         console.log('Bannedplugins',Bannedplugins);
+         console.log('NEW_PERMS_BY_FAMILY',NEW_PERMS_BY_FAMILY);
+ 
+         this.response.template = 'domain_plugins_permissions.html';
+         this.response.body = {
+             roles,
+             NEW_PERMS_BY_FAMILY,
+             domain: this.domain,
+             log2,
+         };
+         console.log('this.response.body',this.response.body);
+     }
+ 
+     // @requireSudo
+     async post({ domainId }) {
+         const roles = {};
+         for (const role in this.request.body) {
+             const perms = this.request.body[role] instanceof Array
+                 ? this.request.body[role]
+                 : [this.request.body[role]];
+             roles[role] = 0n;
+             for (const r of perms) roles[role] |= 1n << BigInt(r);
+         }
+         await Promise.all([
+             DomainModel.setRoles(domainId, roles),
+             OplogModel.log(this, 'domain.setRoles', { roles }),
+         ]);
+         this.back();
+     }
+ }
+ 
 
 class DomainPluginConfigHandler extends ManageHandler {
     async get({ domainId }) {
@@ -313,45 +373,46 @@ export async function apply(ctx: Context) {
         }
     });
     ctx.on('handler/after/SystemPlugin#post', async (h) => {
-        const systemPlugins = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
-        for (const s of systemPlugins) {
+        const systemplugins = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
+        for (const s of systemplugins) {
             const afterSystemPlugin = SystemModel.get(s.key);
             const parsedAfterSystemPlugin = yaml.load(afterSystemPlugin);
             const initialState = h.initialState && h.initialState[s.key];
 
             if (initialState) {
-                const removed = _.differenceWith(initialState as any[], parsedAfterSystemPlugin as any[], _.isEqual);
+                const updateDomains = _.differenceWith(initialState as any[], parsedAfterSystemPlugin as any[], _.isEqual);
 
-                if (removed.length > 0) {
-                    console.log(` ${s.key} has remove domain:`, {
-                        removed: removed
+                if (updateDomains.length > 0) {
+                    console.log(` ${s.name} has update domains: ${updateDomains}`, {
+                        updateDomains: updateDomains
                     });
                     const Pluginname = s.name;
                     const pluginsPerm = PERMS_BY_FAMILY['plugins'];
                     const PermToremove = pluginsPerm.filter(permission => permission.name === Pluginname);
-                    console.log('PermToremove',PermToremove);
-                    for (const role in h.domain.roles) {
-                        let currentPerms = BigInt(h.domain.roles[role]); 
-                        // 取消每个相关权限
-                        for (const perm of PermToremove) {
-                            currentPerms &= ~BigInt(perm.key); // 使用位与运算和取反运算取消权限
+                    const targetDomains = updateDomains
+                    for (const domain of targetDomains) {
+                        const domainRoles: any = await DomainModel.getRoles(domain);
+                        const updatedDomainRoles: { [key: string]: string } = {};
+                        for (const role in domainRoles) {
+                            if (domainRoles[role]._id === 'root') {
+                                console.log('root role:', domainRoles[role]);
+                                continue; 
+                            }
+                            let currentPerms = BigInt(domainRoles[role].perm);
+                            for (const perm of PermToremove) {
+                                currentPerms &= ~BigInt(perm.key);
+                            }
+                            updatedDomainRoles[domainRoles[role]._id] = currentPerms.toString();
                         }
-                        // 更新角色的权限位掩码
-                        h.domain.roles[role] = currentPerms.toString(); // 更新为字符串形式
-                        await DomainModel.setRoles(h.domain._id, h.domain.roles);
+                        console.info('updatedDomainRoles',updatedDomainRoles);
+                        await DomainModel.setRoles(domain, updatedDomainRoles);
                     }
                 }
             }
         }
     });
 
-    ctx.on('handler/after/Home#get', (h) => {
-        console.log('handler.UiContext',h.UiContext);
-    });
-
-    ctx.on('handler/after/DomainPluginStore#post', (h) => {
-        console.log('DomainPluginStore#post',h);
-    });
+   
 
 }
 
