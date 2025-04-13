@@ -5,18 +5,6 @@ import { SystemModel } from 'ejun';
 import { DiscussionModel } from 'ejun';
 import { DomainModel } from 'ejun';
 
-const DEFAULT_NODES = {
-    开黑: [
-        { pic: '预约', name: '预约' },
-        { pic: 'yy', name: '语音' },
-    ],
-    地图: [
-        { pic: 'dust2', name: '沙2' },
-    ],
-    比赛: [
-        { name: '比赛' },
-    ],
-};
 
 
 export async function apply(ctx: Context) {
@@ -49,13 +37,6 @@ export async function apply(ctx: Context) {
     });
 
 
-    ctx.once('handler/after', async (that) => {
-        if (that.domain._id === 'A001') 
-            SettingModel.DomainSetting(
-                SettingModel.Setting('setting_domain', 'nodes', DEFAULT_NODES, 'yaml', 'discussion.nodes', 'Discussion Nodes'),
-            );
-    }
-);
 
     ctx.once('handler/after', async (that) => {
         if (that.domain._id === 'A001') 
