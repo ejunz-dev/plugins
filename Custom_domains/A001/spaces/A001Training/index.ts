@@ -222,8 +222,20 @@ export async function apply(ctx: Context) {
             'a001training_plugins'
         ),
     );
+    const PERM = {
+        PERM_VIEW_A001TRAINING: 1n << 84n,
+    };
 
-    ctx.Route('a001training_main', '/a001training', A001TrainingHandler);
+    global.Ejunz.model.builtin.registerPluginPermission(
+        'spaces',
+        PERM.PERM_VIEW_A001TRAINING, 
+        'View A001Training',
+        false,
+        true,
+        'a001training'
+    );
+
+    ctx.Route('a001training_main', '/a001training', A001TrainingHandler, PERM.PERM_VIEW_A001TRAINING);
 
 
     const CheckSpaceStore = (h) => {

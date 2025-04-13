@@ -223,7 +223,20 @@ export async function apply(ctx: Context) {
         ),
     );
 
-    ctx.Route('a001home_main', '/a001home', A001HomeHandler);
+    const PERM = {
+        PERM_VIEW_A001HOME: 1n << 81n,
+    };
+
+    global.Ejunz.model.builtin.registerPluginPermission(
+        'spaces',
+        PERM.PERM_VIEW_A001HOME, 
+        'View A001Home',
+        false,
+        true,
+        'a001home'
+    );
+
+    ctx.Route('a001home_main', '/a001home', A001HomeHandler, PERM.PERM_VIEW_A001HOME);
 
 
     const CheckSpaceStore = (h) => {

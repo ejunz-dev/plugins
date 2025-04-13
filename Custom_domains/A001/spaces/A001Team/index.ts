@@ -223,7 +223,20 @@ export async function apply(ctx: Context) {
         ),
     );
 
-    ctx.Route('a001team_main', '/a001team', A001TeamHandler);
+
+    const PERM = {
+        PERM_VIEW_A001TEAM: 1n << 83n,
+    };
+
+    global.Ejunz.model.builtin.registerPluginPermission(
+        'spaces',
+        PERM.PERM_VIEW_A001TEAM, 
+        'View A001Team',
+        false,
+        true,
+        'a001team'
+    );
+    ctx.Route('a001team_main', '/a001team', A001TeamHandler, PERM.PERM_VIEW_A001TEAM);
 
 
 

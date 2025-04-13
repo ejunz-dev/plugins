@@ -222,7 +222,20 @@ export async function apply(ctx: Context) {
         ),
     );
 
-    ctx.Route('a001maps_main', '/a001maps', A001MapsHandler);
+    const PERM = {
+        PERM_VIEW_A001MAPS: 1n << 82n,
+    };
+
+    global.Ejunz.model.builtin.registerPluginPermission(
+        'spaces',
+        PERM.PERM_VIEW_A001MAPS, 
+        'View A001Maps',
+        false,
+        true,
+        'a001maps'
+    );
+
+    ctx.Route('a001maps_main', '/a001maps', A001MapsHandler, PERM.PERM_VIEW_A001MAPS);
 
 
     const CheckSpaceStore = (h) => {
