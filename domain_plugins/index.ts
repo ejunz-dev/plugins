@@ -412,6 +412,64 @@ export async function apply(ctx: Context) {
         }
     });
 
+    ctx.on('handler/before/DomainPluginStore#post', async (h) => {
+        const domainplugins = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => s.family === 'setting_domain_on_plugins');
+        for (const s of domainplugins) {
+            const before = await DomainModel.get(h.domain._id);
+            const beforeplugins = before?.plugins;
+            let parsedBeforeplugins : string[] = [];
+        if (beforeplugins) {
+            parsedBeforeplugins = yaml.load(beforeplugins) as string[];
+        } else {
+            parsedBeforeplugins = [];
+        }
+        h.initialState = h.initialState || {};
+        h.initialState['plugins'] = parsedBeforeplugins;
+        }
+  
+    });
+
+    ctx.on('handler/after/DomainPluginStore#post', async (h) => {
+        const domainplugins = SettingModel.DOMAIN_PLUGIN_SETTINGS.filter(s => s.family === 'setting_domain_on_plugins');
+        for (const s of domainplugins) {
+        const after = await DomainModel.get(h.domain._id);
+        const afterplugins = after?.plugins;
+        let parsedAfterplugins: string[] = [];
+
+        if (afterplugins) {
+            parsedAfterplugins = yaml.load(afterplugins) as string[];
+
+        } else {
+            parsedAfterplugins = [];
+        }
+        const initialState = h.initialState && h.initialState[s.key];
+
+
+        if (initialState) {
+            const removed = _.differenceWith(initialState as any[], parsedAfterplugins as any[], _.isEqual);
+
+            if (removed.length > 0) {
+                console.log(`Removed domains: ${removed.join(', ')}`, {
+                    removed: removed
+                });
+                const Pluginname = removed;
+                const pluginsPerm = PERMS_BY_FAMILY['plugins'];
+                const PermToremove = pluginsPerm.filter(permission => permission.name.includes(Pluginname));
+                for (const role in h.domain.roles) {
+                    let currentPerms = BigInt(h.domain.roles[role]); 
+                    for (const perm of PermToremove) {
+                        currentPerms &= ~BigInt(perm.key);
+                    }
+                    h.domain.roles[role] = currentPerms.toString();
+                    await DomainModel.setRoles(h.domain._id, h.domain.roles);
+                }
+            }
+        }
+    }
+
+
+    });
+
    
 
 }

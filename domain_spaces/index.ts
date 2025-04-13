@@ -617,7 +617,9 @@ export async function apply(ctx: Context) {
         }
     }
 
-    const domainSettingpath = ['/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions', '/domain/dashboard'];
+    const domainSettingpath = [
+        '/domain/plugins/config', '/domain/plugins/store', '/domain/plugins/permissions',
+        '/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions', '/domain/dashboard'];
     ctx.on('handler/finish', async (h) => {
         console.log('h.request.path', h.request.path);
         if (domainSettingpath.includes(h.request.path)) {
