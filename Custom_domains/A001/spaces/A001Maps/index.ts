@@ -201,7 +201,6 @@ export class A001MapsHandler extends A001MapsBaseHandler {
 
 
 export async function apply(ctx: Context) {
-
     SettingModel.DomainSpaceConfigSetting(
         SettingModel.Setting
         (   

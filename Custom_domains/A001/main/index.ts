@@ -37,15 +37,36 @@ export async function apply(ctx: Context) {
     });
 
 
+    // PLUGINS
+    // ctx.once('handler/after', async (that) => {
+    //     if (that.domain._id === 'A001') 
+    //         if (that.domain.csnews) {
+    //         SettingModel.DomainSetting(
+    //             SettingModel.Setting('setting_domain', 'csnews', '', 'markdown', 'CSNEWS'),
+    //         );
+    //     }
+    // });
 
+    // SPACES
     ctx.once('handler/after', async (that) => {
         if (that.domain._id === 'A001') 
-            if (that.domain.csnews) {
+            if (that.domain.maps_announce) {
             SettingModel.DomainSetting(
-                SettingModel.Setting('setting_domain', 'csnews', '', 'markdown', 'CSNEWS'),
+                SettingModel.Setting('setting_domain', 'maps_announce', '', 'markdown', 'Maps Announce'),
             );
+            if (that.domain.team_announce) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'team_announce', '', 'markdown', 'Team Announce'),
+                );
+            }
+            if (that.domain.training_announce) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'training_announce', '', 'markdown', 'Training Announce'),
+                );
+            }
         }
     });
+
 
     async function postInitDiscussionNode({ domainId }) {
         if (domainId == 'A001') {
