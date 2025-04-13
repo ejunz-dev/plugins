@@ -226,10 +226,6 @@ export async function apply(ctx: Context) {
     ctx.Route('a001team_main', '/a001team', A001TeamHandler);
 
 
-    ctx.i18n.load('zh', {
-        'a001team_main': '战术频道',
-        'a001team': '战术频道',
-    });
 
 
     const CheckSpaceStore = (h) => {

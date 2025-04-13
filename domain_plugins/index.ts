@@ -285,6 +285,15 @@ export async function apply(ctx: Context) {
         domain_plugins_store: '插件商店',
     });
 
+    ctx.i18n.load('en', {
+        'plugins': 'Domain Plugins',
+        manage_plugins: 'Manage System Plugins',
+        domain_plugins_store: 'Domain Plugin Store',
+        domain_plugins_permissions: 'Domain Plugin Permissions',
+        domain_plugins_config: 'Domain Plugin Config',
+    });
+
+
     ctx.injectUI('Home_Domain', 'domain_plugins', (h) => ({
         icon: 'book',
         displayName: '插件',

@@ -486,6 +486,17 @@ export async function apply(ctx: Context) {
         domain_spaces_plugin: '空间插件',
     });
 
+    ctx.i18n.load('en', {
+        'spaces': 'Domain Spaces',
+        domain_spaces: 'Domain Spaces',
+        manage_spaces: 'Manage System Spaces',
+        domain_spaces_permissions: 'Domain Space Permissions',
+        domain_spaces_config: 'Domain Space Config',
+        domain_spaces_store: 'Domain Space Store',
+        domain_spaces_plugin:'Domain Space Plugins',
+    });
+    
+
     ctx.injectUI('Home_Domain', 'domain_spaces', (h) => ({
         icon: 'book',
         displayName: '空间',
@@ -601,7 +612,7 @@ export async function apply(ctx: Context) {
 
     });
 
-    const domainSettingpath = ['/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions'];
+    const domainSettingpath = ['/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions', '/domain/dashboard'];
     ctx.on('handler/finish', async (h) => {
         console.log('h.request.path', h.request.path);
         if (domainSettingpath.includes(h.request.path)) {
@@ -610,6 +621,8 @@ export async function apply(ctx: Context) {
             h.UiContext.spacename = 'manage_dashboard';
         } else if (h.request.path === '/discuss' || h.request.path === ('/discuss/') || /^\/discuss\/[a-fA-F0-9]{24}$/.test(h.request.path)) {
             h.UiContext.spacename = 'discussion';
+        }else if (h.request.path.startsWith('/discuss/node/')) {
+            h.UiContext.spacename = 'discussion_node';
         }
         console.log('h.UiContext.spacename', h.UiContext.spacename);
     });

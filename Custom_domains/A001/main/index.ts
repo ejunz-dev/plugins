@@ -20,9 +20,34 @@ const DEFAULT_NODES = {
 
 
 export async function apply(ctx: Context) {
+    ctx.i18n.load('en', {
+        'a001home_main': 'Jacka\'s Team Space',
+        'a001home': 'Jacka\'s Team Space',
+        'a001team_main': 'Tactics Channel',
+        'a001team': 'Tactics Channel',
+        'a001training_main': 'Training Channel',
+        'a001training': 'Training Channel',
+        'a001maps_main': 'Map Channel',
+        'a001maps': 'Map Channel',
+        'csnews': 'CSNEWS',
+        'csnews_domain': 'CSNEWS',
+    });
+
+
     ctx.i18n.load('zh', {
         "HLTV": "赛程",
+        'a001home_main': 'Jacka小队总频道',
+        'a001home': 'Jacka小队总频道',
+        'a001team_main': '战术频道',
+        'a001team': '战术频道',
+        'a001training_main': '训练频道',
+        'a001training': '训练频道',
+        'a001maps_main': '道具频道',
+        'a001maps': '道具频道',
+        'csnews': 'CS新闻',
+        'csnews_domain': 'CS新闻',
     });
+
 
     ctx.once('handler/after', async (that) => {
         if (that.domain._id === 'A001') 
