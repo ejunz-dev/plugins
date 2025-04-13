@@ -612,13 +612,21 @@ export async function apply(ctx: Context) {
 
     });
 
+    function cleanNavOverride(h) {
+        if (h.response.body.overrideNav) {
+            h.response.body.overrideNav = [];
+        }
+    }
+
     const domainSettingpath = ['/domain/spaces/config', '/domain/spaces/store', '/domain/spaces/plugin', '/domain/spaces/permissions', '/domain/dashboard'];
     ctx.on('handler/finish', async (h) => {
         console.log('h.request.path', h.request.path);
         if (domainSettingpath.includes(h.request.path)) {
             h.UiContext.spacename = 'domain_dashboard';
+            cleanNavOverride(h);
         } else if (h.request.path.startsWith('/manage/')) {
             h.UiContext.spacename = 'manage_dashboard';
+            cleanNavOverride(h);
         } else if (h.request.path === '/discuss' || h.request.path === ('/discuss/') || /^\/discuss\/[a-fA-F0-9]{24}$/.test(h.request.path)) {
             h.UiContext.spacename = 'discussion';
         }else if (h.request.path.startsWith('/discuss/node/')) {
