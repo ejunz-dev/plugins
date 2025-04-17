@@ -129,9 +129,33 @@ export async function apply(ctx: Context) {
         'Failed to update CS News.': '更新CS新闻失败。',
     });
 
+    ctx.i18n.load('en', {
+        'CS_NEWS': 'CS News',
+        'csnews_domain': 'CS News',
+        'Fetching CS News...': 'Fetching CS News...',
+        'Reloading...': 'Reloading...',
+        'CS News updated successfully!': 'CS News updated successfully!',
+        'Failed to update CS News.': 'Failed to update CS News.',
+    });
 
-    ctx.Route('csnews_domain', '/csnews', A001CsnewHandler, CheckSpaceStore);
-    ctx.Route('csnews_api', '/api-csnews', A001CsnewApiHandler, CheckSpaceStore);
+
+    const PERM = {
+        PERM_VIEW_CSNEWS: 1n << 88n,
+    };
+
+    global.Ejunz.model.builtin.registerPluginPermission(
+        'spaces',
+        PERM.PERM_VIEW_CSNEWS, 
+        'View CS News',
+        true,
+        false,
+        'csnews'
+    );
+
+
+
+    ctx.Route('csnews_domain', '/csnews', A001CsnewHandler, PERM.PERM_VIEW_CSNEWS);
+    ctx.Route('csnews_api', '/api-csnews', A001CsnewApiHandler, PERM.PERM_VIEW_CSNEWS);
 
 
    

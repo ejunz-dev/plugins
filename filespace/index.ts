@@ -18,12 +18,6 @@ import _ from 'lodash';
 export class FilespaceBaseHandler extends Handler {
     async after(domainId: string) {
         this.response.body.overrideNav = [
-            {
-                name: 'homepage',
-                args: {},
-                displayName: 'Back to homepage',
-                checker: () => true,
-            },
         ];
     }
 }
@@ -271,5 +265,13 @@ export async function apply(ctx: Context) {
 
    ctx.injectUI('NavMainDropdown', 'filespace_main', { prefix: 'filespace' }, CheckAll);
 
-
+   ctx.i18n.load('zh', {
+    filespace: '文件空间',
+    filespace_main: '文件空间',
+});
+ctx.i18n.load('en', {
+    filespace: 'Filespace',
+    filespace_main: 'Filespace',
+   
+});
 }
