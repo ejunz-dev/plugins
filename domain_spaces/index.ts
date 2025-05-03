@@ -251,7 +251,7 @@ class DomainSpaceConfigHandler extends ManageHandler {
             // spacenameColumnsections[s] = spacefiles;
             
         }
-        const defaultPath = `/root/Dev/ejunz/packages/ui-default/templates/partials/default`;
+        const defaultPath = `/root/ejunz/packages/ui-default/templates/partials/default`;
         const defaultfiles = fs.readdirSync(defaultPath).filter(file => 
             !file.includes('space') && !file.endsWith('_main.html')
         ).map(file => file.replace(/\.html$/, ''));
