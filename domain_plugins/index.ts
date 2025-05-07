@@ -136,7 +136,7 @@ class SystemPluginHandler extends SystemHandler {
 }
 
 class DomainPluginPermissionsHandler extends ManageHandler {
-    // @requireSudo
+    @requireSudo
      async get({ domainId }) {
          const roles = await DomainModel.getRoles(domainId);
          const D = SettingModel.SYSTEM_SETTINGS.filter(s => s.family === 'system_plugins');
@@ -189,7 +189,7 @@ class DomainPluginPermissionsHandler extends ManageHandler {
          console.log('this.response.body',this.response.body);
      }
  
-     // @requireSudo
+     @requireSudo
      async post({ domainId }) {
          const roles = {};
          for (const role in this.request.body) {
@@ -209,6 +209,7 @@ class DomainPluginPermissionsHandler extends ManageHandler {
  
 
 class DomainPluginConfigHandler extends ManageHandler {
+    @requireSudo
     async get({ domainId }) {
         let Plugins = this.domain.plugins;
         if (!Plugins) {
@@ -264,6 +265,7 @@ class DomainPluginConfigHandler extends ManageHandler {
         this.response.body.current = this.domain;
         this.response.body.settings = completePluginSettings;
     }
+    @requireSudo
     async post(args) {
         console.log(args);
         if (args.operation) return;
@@ -276,7 +278,8 @@ class DomainPluginConfigHandler extends ManageHandler {
     }
 }
 
-class DomainPluginStoreHandler extends ManageHandler {
+class DomainPluginStoreHandler extends ManageHandler {  
+    @requireSudo
     async get({ domainId }) {
         const T = SettingModel.SYSTEM_SETTINGS.filter(s => s.key.endsWith('.plugins_allowed_domains'));
         const keynameArray = T.map(s => 
@@ -312,6 +315,7 @@ class DomainPluginStoreHandler extends ManageHandler {
 
 
     }
+    @requireSudo
     async post(args) {
         console.log(args);
         if (args.operation) return;
