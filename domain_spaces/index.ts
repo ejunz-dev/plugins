@@ -628,9 +628,7 @@ export async function apply(ctx: Context) {
         } else if (h.request.path.startsWith('/manage/')) {
             h.UiContext.spacename = 'manage_dashboard';
             cleanNavOverride(h);
-        } else if (h.request.path === '/discuss' || h.request.path === ('/discuss/') || /^\/discuss\/[a-fA-F0-9]{24}$/.test(h.request.path)) {
-            h.UiContext.spacename = 'discussion';
-        }else if (h.request.path.startsWith('/discuss/node/')) {
+        } else if (h.request.path.startsWith('/discuss/node/')) {
             h.UiContext.spacename = 'discussion_node';
         }
         console.log('h.UiContext.spacename', h.UiContext.spacename);
