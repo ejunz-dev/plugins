@@ -10,12 +10,11 @@ function getLogoDom() {
   return $logo.length ? $logo : null;
 }
 
-addPage(new AutoloadPage('A002_main', async () => {
+addPage(new AutoloadPage('Z002_main', async () => {
   const $logo = getLogoDom();
-  if (target === 'A002') {
+  if (target === 'Z002') {
     if ($logo) {
-      $logo.attr('src', '/file/2/A002.jpeg');
+      $logo.attr('src', '/file/2/Z002.jpeg');
     }
   }
 }));
-P
