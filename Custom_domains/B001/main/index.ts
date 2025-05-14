@@ -11,16 +11,20 @@ export async function apply(ctx: Context) {
     ctx.i18n.load('en', {
         'b001home_main': 'Jacka\'s IELTS Channel',
         'b001home': 'Jacka\'s IELTS Channel',
-        'b001hub': 'IELTS Resources',
-        'b001hub_main': 'IELTS Resources',
+        'b001hub': 'Learning Center',
+        'b001hub_main': 'Learning Center',
+        'b001share': 'Share Center',
+        'b001share_main': 'Share Center',
     });
 
 
     ctx.i18n.load('zh', {
-        'b001home_main': 'Jacka 的雅思频道',
-        'b001home': 'Jacka 的雅思频道',
-        'b001hub': '雅思资料',
-        'b001hub_main': '雅思资料', 
+        'b001home_main': 'jacka的雅思频道',
+        'b001home': 'jacka的雅思频道',
+        'b001hub': '学习中心',
+        'b001hub_main': '学习中心', 
+        'b001share': '分享中心',
+        'b001share_main': '分享中心', 
     });
 
 
