@@ -18,4 +18,3 @@ addPage(new AutoloadPage('A002_main', async () => {
     }
   }
 }));
-P

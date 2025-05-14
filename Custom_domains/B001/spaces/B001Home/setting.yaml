@@ -1,0 +1,6 @@
+spaces_allowed_domains:
+  family: system_spaces
+  type: yaml
+  name: b001home
+  desc: Allowed domains
+  default: [B001]
