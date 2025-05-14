@@ -11,13 +11,16 @@ export async function apply(ctx: Context) {
     ctx.i18n.load('en', {
         'b001home_main': 'Jacka\'s IELTS Channel',
         'b001home': 'Jacka\'s IELTS Channel',
+        'b001hub': 'IELTS Resources',
+        'b001hub_main': 'IELTS Resources',
     });
 
 
     ctx.i18n.load('zh', {
         'b001home_main': 'Jacka 的雅思频道',
         'b001home': 'Jacka 的雅思频道',
-
+        'b001hub': '雅思资料',
+        'b001hub_main': '雅思资料', 
     });
 
 
