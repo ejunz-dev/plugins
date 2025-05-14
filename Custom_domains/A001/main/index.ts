@@ -48,24 +48,24 @@ export async function apply(ctx: Context) {
     // });
 
     // SPACES
-    ctx.once('handler/after', async (that) => {
-        if (that.domain._id === 'A001') 
-            if (that.domain.maps_announce) {
-            SettingModel.DomainSetting(
-                SettingModel.Setting('setting_domain', 'maps_announce', '', 'markdown', 'Maps Announce'),
-            );
-            if (that.domain.team_announce) {
-                SettingModel.DomainSetting(
-                    SettingModel.Setting('setting_domain', 'team_announce', '', 'markdown', 'Team Announce'),
-                );
-            }
-            if (that.domain.training_announce) {
-                SettingModel.DomainSetting(
-                    SettingModel.Setting('setting_domain', 'training_announce', '', 'markdown', 'Training Announce'),
-                );
-            }
-        }
-    });
+    // ctx.once('handler/before/DomainEdit#get', async (that) => {
+    //     if (that.domain._id === 'A001') 
+    //         if (that.domain.maps_announce) {
+    //         SettingModel.DomainSetting(
+    //             SettingModel.Setting('setting_domain', 'maps_announce', '', 'markdown', 'Maps Announce'),
+    //         );
+    //         if (that.domain.team_announce) {
+    //             SettingModel.DomainSetting(
+    //                 SettingModel.Setting('setting_domain', 'team_announce', '', 'markdown', 'Team Announce'),
+    //             );
+    //         }
+    //         if (that.domain.training_announce) {
+    //             SettingModel.DomainSetting(
+    //                 SettingModel.Setting('setting_domain', 'training_announce', '', 'markdown', 'Training Announce'),
+    //             );
+    //         }
+    //     }
+    // });
 
 
     async function postInitDiscussionNode({ domainId }) {
@@ -101,5 +101,34 @@ export async function apply(ctx: Context) {
         DomainDashboardHandler.prototype.postInitDiscussionNode = postInitDiscussionNode;
     });
 
+    // async get() {
+    //     this.response.template = 'domain_edit.html';
+    //     this.response.body = { current: this.domain, settings: DOMAIN_SETTINGS };
+    // }
+
+
+    // ctx.withHandlerClass('DomainEditHandler', (DomainEditHandler) => {
+    //     DomainEditHandler.prototype.get = get;
+    //     DomainEditHandler.prototype.post = post;
+    // });
+
 }
 
+
+
+// class DomainEditHandler extends ManageHandler {
+//     async get() {
+//         this.response.template = 'domain_edit.html';
+//         this.response.body = { current: this.domain, settings: DOMAIN_SETTINGS };
+//     }
+
+//     async post(args) {
+//         if (args.operation) return;
+//         const $set = {};
+//         for (const key in args) {
+//             if (DOMAIN_SETTINGS_BY_KEY[key]) $set[key] = args[key];
+//         }
+//         await domain.edit(args.domainId, $set);
+//         this.response.redirect = this.url('domain_dashboard');
+//     }
+// }
