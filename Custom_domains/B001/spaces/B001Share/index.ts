@@ -224,19 +224,19 @@ export async function apply(ctx: Context) {
     );
 
     const PERM = {
-        PERM_VIEW_B001HOME: 1n << 81n,
+        PERM_VIEW_B001SHARE: 1n << 92n,
     };
 
     global.Ejunz.model.builtin.registerPluginPermission(
         'spaces',
-        PERM.PERM_VIEW_B001HOME, 
+        PERM.PERM_VIEW_B001SHARE, 
         'View B001Share',
         false,
         true,
         'b001share'
     );
 
-    ctx.Route('b001share_main', '/b001share', B001ShareHandler, PERM.PERM_VIEW_B001HOME);
+    ctx.Route('b001share_main', '/b001share', B001ShareHandler, PERM.PERM_VIEW_B001SHARE);
 
 
     const CheckSpaceStore = (h) => {

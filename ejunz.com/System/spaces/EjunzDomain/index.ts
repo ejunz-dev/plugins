@@ -225,18 +225,18 @@ export async function apply(ctx: Context) {
 
 
     const PERM = {
-        PERM_VIEW_EjunzTEAM: 1n << 83n,
+        PERM_VIEW_EjunzDOMAIN: 1n << 87n,
     };
 
     global.Ejunz.model.builtin.registerPluginPermission(
         'spaces',
-        PERM.PERM_VIEW_EjunzTEAM, 
+        PERM.PERM_VIEW_EjunzDOMAIN, 
         'View EjunzDomain',
         false,
         true,
         'ejunzdomain'
     );
-    ctx.Route('ejunzdomain_main', '/ejunzdomain', EjunzDomainHandler);
+    ctx.Route('ejunzdomain_main', '/ejunzdomain', EjunzDomainHandler, PERM.PERM_VIEW_EjunzDOMAIN);
 
 
 

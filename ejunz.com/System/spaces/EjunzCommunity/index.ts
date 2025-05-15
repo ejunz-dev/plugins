@@ -223,19 +223,19 @@ export async function apply(ctx: Context) {
     );
 
     const PERM = {
-        PERM_VIEW_EjunzMAPS: 1n << 82n,
+        PERM_VIEW_EjunzCOMMUNITY: 1n << 85n,
     };
 
     global.Ejunz.model.builtin.registerPluginPermission(
         'spaces',
-        PERM.PERM_VIEW_EjunzMAPS, 
+        PERM.PERM_VIEW_EjunzCOMMUNITY, 
         'View EjunzCommunity',
         false,
         true,
         'ejunzcommunity'
     );
 
-    ctx.Route('ejunzcommunity_main', '/ejunzcommunity', EjunzCommunityHandler);
+    ctx.Route('ejunzcommunity_main', '/ejunzcommunity', EjunzCommunityHandler, PERM.PERM_VIEW_EjunzCOMMUNITY);
 
 
     const CheckSpaceStore = (h) => {
