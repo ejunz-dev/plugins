@@ -47,25 +47,29 @@ export async function apply(ctx: Context) {
     // });
 
     // SPACES
-    // ctx.once('handler/before/DomainEdit#get', async (that) => {
-    //     if (that.domain._id === 'A001') 
-    //         if (that.domain.maps_announce) {
-    //         SettingModel.DomainSetting(
-    //             SettingModel.Setting('setting_domain', 'maps_announce', '', 'markdown', 'Maps Announce'),
-    //         );
-    //         if (that.domain.team_announce) {
-    //             SettingModel.DomainSetting(
-    //                 SettingModel.Setting('setting_domain', 'team_announce', '', 'markdown', 'Team Announce'),
-    //             );
-    //         }
-    //         if (that.domain.training_announce) {
-    //             SettingModel.DomainSetting(
-    //                 SettingModel.Setting('setting_domain', 'training_announce', '', 'markdown', 'Training Announce'),
-    //             );
-    //         }
-    //     }
-    // });
-
+    ctx.once('handler/before/DomainEdit#get', async (that) => {
+        if (that.domain._id === 'system') 
+            if (!that.domain.community_announce) {
+            SettingModel.DomainSetting(
+                SettingModel.Setting('setting_domain', 'community_announce', '', 'markdown', 'Community Announce'),
+            );
+            if (!that.domain.dev_announce) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'dev_announce', '', 'markdown', 'Dev Announce'),
+                );
+            }
+            if (!that.domain.service_announce) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'service_announce', '', 'markdown', 'Service Announce'),
+                );
+            }
+            if (!that.domain.domain_announce) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'domain_announce', '', 'markdown', 'Domain Announce'),
+                );
+            }
+        }
+    });
 
     async function postInitDiscussionNode({ domainId }) {
         if (domainId == 'A001') {

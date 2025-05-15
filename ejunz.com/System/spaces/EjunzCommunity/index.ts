@@ -235,7 +235,7 @@ export async function apply(ctx: Context) {
         'ejunzcommunity'
     );
 
-    ctx.Route('ejunzcommunity_main', '/ejunzcommunity', EjunzCommunityHandler, PERM.PERM_VIEW_EjunzMAPS);
+    ctx.Route('ejunzcommunity_main', '/ejunzcommunity', EjunzCommunityHandler);
 
 
     const CheckSpaceStore = (h) => {

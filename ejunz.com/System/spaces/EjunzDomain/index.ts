@@ -236,7 +236,7 @@ export async function apply(ctx: Context) {
         true,
         'ejunzdomain'
     );
-    ctx.Route('ejunzdomain_main', '/ejunzdomain', EjunzDomainHandler, PERM.PERM_VIEW_EjunzTEAM);
+    ctx.Route('ejunzdomain_main', '/ejunzdomain', EjunzDomainHandler);
 
 
 

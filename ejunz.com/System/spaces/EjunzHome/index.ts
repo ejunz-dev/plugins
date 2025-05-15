@@ -236,7 +236,7 @@ export async function apply(ctx: Context) {
         'ejunzhome'
     );
 
-    ctx.Route('ejunzhome_main', '/ejunzhome', EjunzHomeHandler, PERM.PERM_VIEW_EjunzHOME);
+    ctx.Route('ejunzhome_main', '/ejunzhome', EjunzHomeHandler);
 
 
     const CheckSpaceStore = (h) => {
