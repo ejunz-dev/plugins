@@ -1,0 +1,7 @@
+{% if domain.service_announce %}
+  <div class="section">
+    <div class="section__body typo richmedia">
+      {{ domain.service_announce|markdown|safe }}
+    </div>
+  </div>
+{% endif %} 
