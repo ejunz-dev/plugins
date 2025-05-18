@@ -49,30 +49,38 @@ export async function apply(ctx: Context) {
     // SPACES
     ctx.once('handler/before/DomainEdit#get', async (that) => {
         if (that.domain._id === 'system') 
-            if (!that.domain.community_announce) {
+            console.log('home_announce', that.domain.home_announce)
+            if (that.domain.community_announce) {
             SettingModel.DomainSetting(
                 SettingModel.Setting('setting_domain', 'community_announce', '', 'markdown', 'Community Announce'),
             );
-            if (!that.domain.dev_announce) {
+            if (that.domain.dev_announce) {
                 SettingModel.DomainSetting(
                     SettingModel.Setting('setting_domain', 'dev_announce', '', 'markdown', 'Dev Announce'),
                 );
             }
-            if (!that.domain.service_announce) {
+            if (that.domain.service_announce) {
                 SettingModel.DomainSetting(
                     SettingModel.Setting('setting_domain', 'service_announce', '', 'markdown', 'Service Announce'),
                 );
             }
-            if (!that.domain.domain_announce) {
+            if (that.domain.domain_announce) {
                 SettingModel.DomainSetting(
                     SettingModel.Setting('setting_domain', 'domain_announce', '', 'markdown', 'Domain Announce'),
+                );
+            }
+            if (that.domain.home_announce) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'home_announce', '', 'markdown', 'Home Announce'),
                 );
             }
         }
     });
 
+
+
     async function postInitDiscussionNode({ domainId }) {
-        if (domainId == 'A001') {
+        if (domainId == 'system') {
             const nodes = load(this.domain.nodes);
             console.log('nodes,',nodes);
             await DiscussionModel.flushNodes(domainId);
