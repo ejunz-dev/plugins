@@ -80,6 +80,11 @@ export async function apply(ctx: Context) {
     //                 SettingModel.Setting('setting_domain', 'home_announce1', '', 'markdown', 'Home Announce1'),
     //             );
     //         }
+    //         if (!that.domain.home_announce2) {
+    //             SettingModel.DomainSetting(
+    //                 SettingModel.Setting('setting_domain', 'home_announce2', '', 'markdown', 'Home Announce2'),
+    //             );
+    //         }
     //     }
     // });
 
