@@ -16,5 +16,6 @@ addPage(new AutoloadPage('B001_main', async () => {
     if ($logo) {
       $logo.attr('src', '/file/2/B001.jpeg');
     }
+    $('a[href="/"]').attr('href', '/d/B001/');
   }
 }));

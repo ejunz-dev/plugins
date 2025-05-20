@@ -53,6 +53,40 @@ export async function apply(ctx: Context) {
 
     // });
 
+    ctx.once('handler/before/DomainEdit#get', async (that) => {
+        if (that.domain._id === 'B001') 
+            if (!that.domain.b001_announce1) {
+            SettingModel.DomainSetting(
+                SettingModel.Setting('setting_domain', 'b001_announce1', '', 'markdown', 'B001 Announce1'),
+            );
+            if (!that.domain.b001_announce2) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'b001_announce2', '', 'markdown', 'B001 Announce2'),
+                );
+            }
+            if (!that.domain.b001_announce3) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'b001_announce3', '', 'markdown', 'B001 Announce3'),
+                );
+            }
+            if (!that.domain.b001_announce4) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'b001_announce4', '', 'markdown', 'B001 Announce4'),
+                );
+            }
+            if (!that.domain.b001_announce5) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'b001_announce5', '', 'markdown', 'B001 Announce5'),
+                );
+            }
+            if (!that.domain.b001_announce6) {
+                SettingModel.DomainSetting(
+                    SettingModel.Setting('setting_domain', 'b001_announce6', '', 'markdown', 'B001 Announce6'),
+                );
+            }       
+         }
+    });
+
 
     async function postInitDiscussionNode({ domainId }) {
         if (domainId == 'B001') {
