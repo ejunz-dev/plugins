@@ -8,11 +8,6 @@ import { DomainModel } from 'ejun';
 
 
 export async function apply(ctx: Context) {
-    ctx.i18n.load('en', {
-        'a004home_main': '天纪频道',
-        'a004home': '天纪频道',
-    });
-
 
     ctx.i18n.load('zh', {
         'z001home_main': '天纪频道',
