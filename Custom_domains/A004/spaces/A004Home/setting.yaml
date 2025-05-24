@@ -1,0 +1,6 @@
+spaces_allowed_domains:
+  family: system_spaces
+  type: yaml
+  name: a004home
+  desc: Allowed domains
+  default: [A004]
