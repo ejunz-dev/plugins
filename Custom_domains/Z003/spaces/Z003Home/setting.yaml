@@ -1,0 +1,6 @@
+spaces_allowed_domains:
+  family: system_spaces
+  type: yaml
+  name: z003home
+  desc: Allowed domains
+  default: [Z003]
